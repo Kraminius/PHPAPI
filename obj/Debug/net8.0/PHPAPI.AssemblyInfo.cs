@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PHPAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f82d6fcfac1a86bf9fe109b6463ce03f9dbfa764")]
 [assembly: System.Reflection.AssemblyProductAttribute("PHPAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PHPAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

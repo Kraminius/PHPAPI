@@ -30,3 +30,4 @@ C:\Users\mikju\OneDrive - Danmarks Tekniske Universitet\Dokumenter\DTU\4. Semest
 C:\Users\mikju\OneDrive - Danmarks Tekniske Universitet\Dokumenter\DTU\4. Semester\Backend\PHPBack_NEW\PHPAPI\obj\Debug\net8.0\PHPAPI.pdb
 C:\Users\mikju\OneDrive - Danmarks Tekniske Universitet\Dokumenter\DTU\4. Semester\Backend\PHPBack_NEW\PHPAPI\obj\Debug\net8.0\PHPAPI.genruntimeconfig.cache
 C:\Users\mikju\OneDrive - Danmarks Tekniske Universitet\Dokumenter\DTU\4. Semester\Backend\PHPBack_NEW\PHPAPI\obj\Debug\net8.0\ref\PHPAPI.dll
+C:\Users\mikju\OneDrive - Danmarks Tekniske Universitet\Dokumenter\DTU\4. Semester\Backend\PHPBack_NEW\PHPAPI\obj\Debug\net8.0\PHPAPI.sourcelink.json
