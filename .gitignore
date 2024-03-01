@@ -1,2 +1,25 @@
-.vs/
-*.vsidx 
+# Build artifacts 
+**/bin/
+**/obj/
+
+# User-specific files and settings
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+
+# Logs 
+*.log
+
+# Dependency and package directories
+**/packages/
+**/node_modules/
+
+# Miscellaneous
+*.pem 
+*.pfx
+**/wwwroot/lib/ 
