@@ -8,18 +8,17 @@ namespace PeopleHelpPeople.Controllers
 {
     [Route("api/[controller]")] // Defines the route template
     [ApiController] // Signifies that this controller responds to web API requests
-    public class ChatController : ControllerBase // Change the name to follow convention and inherit from ControllerBase
+    public class ChatUpdateControl : ControllerBase // Change the name to follow convention and inherit from ControllerBase
     {
-        [HttpGet(Name = "Chat")] // Indicates that this action handles GET requests
-        public ActionResult GetMessage([FromHeader] int id) {
+        [HttpGet(Name = "ChatLastUpdate")] // Indicates that this action handles GET requests
+        public ActionResult GetMessage([FromHeader] int id)
+        {
             //ActionResult<IEnumerable<Model.Chat>> GetChat();
-        
+
             // Assuming DataLayer.getChat fetches data from the data source
-            var chat = DataLayer.GetChat(id);
+            var chat = DataLayer.GetChatLastUpdate(id);
             if (chat == null) return NotFound(); // Returns a 404 if no chats are found
             return Ok(chat); // Returns a 200 OK response with the chat
         }
     }
-
-
 }
