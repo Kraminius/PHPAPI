@@ -11,6 +11,8 @@ public class Chathub : Hub
 {
     public async Task SendMessage(string id, string user, string message)
     {
+        //In the future we want server to handle who it sends to
+        //var RecieverId = GetReciever(senderId);
         Clients.User(id).SendAsync("RecieveMessage", user, DateTime.Now, message);
     }
 }
