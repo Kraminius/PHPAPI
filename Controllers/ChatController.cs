@@ -17,8 +17,8 @@ namespace PeopleHelpPeople.Controllers
 
             // Assuming DataLayer.getChat fetches data from the data source
             var chat = DataLayer.GetChat(id);
-            if (chat == null) return NotFound(); // Returns a 404 if no chats are found
-            return Ok(chat); // Returns a 200 OK response with the chat
+            if (chat != null) return Ok(chat); // Returns a 200 OK response with the chat
+            return NotFound(); // Returns a 404 if no chats are found
         }
     }
 
