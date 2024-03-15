@@ -15,4 +15,10 @@ public class Chathub : Hub
         //var RecieverId = GetReciever(senderId);
         Clients.User(id).SendAsync("RecieveMessage", user, DateTime.Now, message);
     }
+
+    public async Task SendToIndividual(string connectionId, string message)
+    {
+        await Clients.Client(connectionId).ReceiveMessage(GetMessageToSend(message));
+    }
+
 }

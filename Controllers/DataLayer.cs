@@ -29,6 +29,8 @@ namespace PeopleHelpPeople.Controllers
 
         public static Chat GetChat(int id) => Chats.Where(c => c.Id == id).SingleOrDefault();
 
+        public static 
+
         public static IEnumerable<DateTime> GetChatLastUpdate(int id)
         {
             yield return Chats.SingleOrDefault(c => c.Id == id).Updated;

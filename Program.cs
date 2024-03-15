@@ -22,7 +22,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-app.MapHub<ChatHub>("/chatHub");
+app.MapHub<ChatGroupHub>("/ChatGroupHub");
 
 app.MapControllers();
 
