@@ -6,31 +6,22 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.SignalR;
 using System.Xml.Linq;
 
-namespace PeopleHelpPeople.ChatGroupHub;
+public class ChatGroupHub : Hub
 {
-    public interface IEventHub
+    public async Task JoinGroup(string groupName)
     {
-    Task SendNoticeEventToClient(string message);
 
-    Task SendMessageToGroup(string group, string message);
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
     }
 
-    public class EventHub : Hub<IEventHub>
+    public async Task LeaveGroup(string groupName)
     {
-        public Task JoinOrLeaveGroup(string group, bool check)
-        {
-            if (check)
-            {
-                return Groups.AddToGroupAsync(Context.ConnectionId, group);
-            }
-            else
-            {
-                return Groups.RemoveFromGroupAsync(Context.ConnectionId, group);
-            }
-        }
-    public Task SendToGroup(string group, string message)
-    {
-        Clients.OthersInGroup(group).addChatMessage(message);
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
     }
+
+    public async Task SendMessage(string groupName, string user, string message) {
+
+        await Clients.Group(groupName).SendAsync("ReceiveMessage", user, message);
     }
+
 }

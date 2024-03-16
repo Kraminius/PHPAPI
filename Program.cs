@@ -1,4 +1,5 @@
-using PHPAPI.Hubs;
+
+using PeopleHelpPeople.ChatHub;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,13 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-app.MapHub<ChatGroupHub>("/ChatGroupHub");
+// app.MapHub<ChatGroupHub>("/ChatGroupHub");
+
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<ChatGroupHub>("/ChatGroupHub");
+    // Other endpoint mappings...
+});
 
 app.MapControllers();
 
