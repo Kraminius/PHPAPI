@@ -11,7 +11,7 @@ namespace PeopleHelpPeople.Controllers
     public class ChatGroupController : ControllerBase // Change the name to follow convention and inherit from ControllerBase
     {
         [HttpPost(Name = "Chat")] // Indicates that this action handles GET requests
-        public ActionResult GetMessage([FromBody] String mesg, String group)
+        public ActionResult GetMessage([FromHeader] int id)
         {
             //ActionResult<IEnumerable<Model.Chat>> GetChat();
 
