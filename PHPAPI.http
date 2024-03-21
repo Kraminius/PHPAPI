@@ -1,4 +1,5 @@
-@PHPAPI_HostAddress = http://localhost:5223
+//@PHPAPI_HostAddress = http://localhost:5223
+@PHPAPI_HostAddress = https://localhost:7131
 
 GET {{PHPAPI_HostAddress}}/weatherforecast/
 Accept: application/json

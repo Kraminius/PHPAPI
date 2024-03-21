@@ -1,13 +1,10 @@
-
 using PeopleHelpPeople.ChatHub;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddSignalR();
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -21,16 +18,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
 
-// app.MapHub<ChatGroupHub>("/ChatGroupHub");
+app.UseRouting(); // This needs to be called before UseAuthorization and UseEndpoints
+
+app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<ChatGroupHub>("/ChatGroupHub");
-    // Other endpoint mappings...
+    endpoints.MapControllers(); // You can map controllers here within UseEndpoints
 });
-
-app.MapControllers();
 
 app.Run();

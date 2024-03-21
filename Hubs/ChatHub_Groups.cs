@@ -26,7 +26,7 @@ public class ChatGroupHub : Hub
     public async Task SendMessage(string groupName, string user, string message) {
 
         await Clients.Group(groupName).SendAsync("ReceiveMessage", user, message);
-        Console.WriteLine("Send: " + message + "from: " + user + "in: " groupName + "\n");
+        Console.WriteLine("Send: " + message + "from: " + user + "in: " + groupName + "\n");
     }
 
 }
