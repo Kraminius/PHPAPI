@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.SignalR;
 using System.Xml.Linq;
+using System;
+using System.Threading.Tasks;
 
 public class ChatGroupHub : Hub
 {
