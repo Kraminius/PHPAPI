@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 public class ChatGroupHub : Hub
 {
-    public async Task JoinGroup(string groupName)
+    public Task JoinGroup(string groupName)
     {
 
         return Groups.AddToGroupAsync(Context.ConnectionId, groupName);
@@ -20,7 +20,7 @@ public class ChatGroupHub : Hub
         
     }
 
-    public async Task LeaveGroup(string groupName)
+    public Task LeaveGroup(string groupName)
     {
         return Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
         //await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
@@ -29,7 +29,7 @@ public class ChatGroupHub : Hub
         
     }
 
-    public async Task SendMessage(string groupName, string user, string message) {
+    public Task SendMessage(string groupName, string user, string message) {
 
         return Clients.Group(groupName).SendAsync(user, message);
         //await Clients.Group(groupName).SendAsync("ReceiveMessage", user, message);
