@@ -13,7 +13,8 @@ public class ChatGroupHub : Hub
     public async Task JoinGroup(string groupName)
     {
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        return Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+        //await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
 
         Console.WriteLine("Group joined: " + groupName + "\n");
         
@@ -21,7 +22,8 @@ public class ChatGroupHub : Hub
 
     public async Task LeaveGroup(string groupName)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+        return Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+        //await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
 
         Console.WriteLine("Group left: " + groupName + "\n");
         
@@ -29,7 +31,8 @@ public class ChatGroupHub : Hub
 
     public async Task SendMessage(string groupName, string user, string message) {
 
-        await Clients.Group(groupName).SendAsync("ReceiveMessage", user, message);
+        return Clients.Group(groupName).SendAsync(user, message);
+        //await Clients.Group(groupName).SendAsync("ReceiveMessage", user, message);
         Console.WriteLine("Send: " + message + "from: " + user + "in: " + groupName + "\n");
        
     }

@@ -21,12 +21,12 @@ app.UseHttpsRedirection();
 
 app.UseRouting(); // This needs to be called before UseAuthorization and UseEndpoints
 
-app.UseAuthorization();
+//app.UseAuthorization();
 
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<ChatGroupHub>("/ChatGroupHub");
-    endpoints.MapControllers(); // You can map controllers here within UseEndpoints
+    //endpoints.MapControllers(); // You can map controllers here within UseEndpoints
 });
 
 app.Run();
