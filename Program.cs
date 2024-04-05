@@ -24,9 +24,26 @@ var app = builder.Build();
 var serviceProvider = app.Services.CreateScope().ServiceProvider;
 var mongoDBService = serviceProvider.GetService<MongoDBService>();
 
-Console.WriteLine(mongoDBService);
+if (mongoDBService != null)
+{
+    await mongoDBService.InsertMockDataIfNeededAsync();
+}
 
-mongoDBService?.InsertMockDataIfNeededAsync().GetAwaiter().GetResult();
+// Testing closest target
+double latitude = 53;
+double longitude = 6;
+
+Console.WriteLine("Searching for " + latitude + ", " + longitude);
+
+var nearestUser = await mongoDBService?.FindNearestAsync(latitude, longitude, 100000000);
+if (nearestUser != null)
+{
+    Console.WriteLine($"Nearest User ID: {nearestUser.UserId}, Location: {nearestUser.Location.Coordinates.Latitude}, {nearestUser.Location.Coordinates.Longitude}");
+}
+else
+{
+    Console.WriteLine("No users found nearby.");
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -35,7 +52,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-Console.WriteLine("SOMETHING");
 
 
 app.UseHttpsRedirection();

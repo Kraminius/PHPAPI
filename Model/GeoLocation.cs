@@ -1,5 +1,6 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver.GeoJsonObjectModel;
 
 namespace PeopleHelpPeople.Model
 {
@@ -16,5 +17,10 @@ namespace PeopleHelpPeople.Model
 
         [BsonElement("longitude")]
         public double Longitude { get; set; }
+
+        public GeoJsonPoint<GeoJson2DGeographicCoordinates> Location { get; set; }
+
+        public double distance { get; set; }
+
     }
 }
