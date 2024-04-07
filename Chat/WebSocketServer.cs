@@ -39,9 +39,33 @@
                 if (context.Request.IsWebSocketRequest)
                 {
 
+                    WebSocketContext socketContext = null;
 
+                    try
+                    {
+                        socketContext = await context.AcceptWebSocketAsync(subProtocol: null);
+                        //For the future we would like to get id from database!!!
+                        var clientID = Guid.NewGuid();
+                        var webSocket = socketContext.WebSocket;
+                        clients.TryAdd(clientID, webSocket);
+                        Console.WriteLine("Connected client: " + clientID + "\n");
+                        await ReceiveMessagesAsync(webSocket, clientID); //Fix this
+
+                    }
+                    catch(Exception exception)
+                    {
+                        Console.WriteLine("Chat client Connection error" + exception + "\n");
+                    }
+                    finally
+                    {
+                        if(socketContext != null)
+                        {
+                            clients.TryRemove(Guid.NewGuid(), out _);
+                        }
+                    }
 
                 }
+                //Message is not a web socket so we cant work with it, we send a 400 response
                 else
                 {
                     context.Response.StatusCode = 400;
@@ -49,6 +73,26 @@
                 }
             }
         }
+
+        //Recieve message
+        private async Task RecieveMessage(WebSocket webSocket, Guid clientID)
+        {
+            var buffer = new byte[1024];
+            while(webSocket.State == WebSocketState.Open)
+            {
+
+                try
+                {
+                    var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    if(result.MessageType == WebSocketMessageType.Text)
+                    {
+                        var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                    }
+                }
+
+            }
+        }
+
 
     }
 }
