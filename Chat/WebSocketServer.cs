@@ -84,13 +84,64 @@
                 try
                 {
                     var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                    //Recieved a message
                     if(result.MessageType == WebSocketMessageType.Text)
                     {
                         var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+                        Console.WriteLine("Recieved message: " + message + "\n");
+                        await ForwardMessage(clientID, message);
                     }
+                    //Recieved close request
+                    else if(result.MessageType == WebSocketMessageType.Close)
+                    {
+
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed", CancellationToken.None);
+
+                    }
+                }
+                catch(Exception exception) 
+                {
+                    Console.WriteLine("Error recieving message: " + exception + " from: " + clientID + "\n");
+                    break;
                 }
 
             }
+        }
+
+        private async Task ForwardMessage(Guid senderID, string message)
+        {
+            var splitMessage = message.Split(':');
+
+            //Message is not valid
+            if(splitMessage.Length != 3) 
+            {
+                Console.WriteLine("Invalid message: " + message + "\n");
+                return;
+            }
+
+            //Reciever not valid
+            Guid reciverID;
+            if (!Guid.TryParse(splitMessage[1], out reciverID))
+            {
+                Console.WriteLine("Invalid reciever: " + splitMessage[1]);
+                return;
+            }
+
+            //Send message
+            var chatMessage = senderID + ":" + splitMessage[2];
+
+            if(clients.TryGetValue(reciverID, out var recieverSocket) && (recieverSocket.State == WebSocketState.Open))
+            {
+                var buffer = Encoding.UTF8.GetBytes(chatMessage);
+                await recieverSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+                Console.WriteLine("Send message to: " + senderID + ". Message is: " + splitMessage[2] + "\n");
+            }
+            else
+            {
+                Console.WriteLine("Reciever: " + reciverID + " not found");
+            }
+
+
         }
 
 
