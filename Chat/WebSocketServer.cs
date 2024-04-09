@@ -40,16 +40,16 @@
                 {
 
                     WebSocketContext socketContext = null;
+                    var clientID = Guid.NewGuid();
 
                     try
                     {
                         socketContext = await context.AcceptWebSocketAsync(subProtocol: null);
-                        //For the future we would like to get id from database!!!
-                        var clientID = Guid.NewGuid();
+                        // For the future we would like to get id from database!!!
                         var webSocket = socketContext.WebSocket;
                         clients.TryAdd(clientID, webSocket);
                         Console.WriteLine("Connected client: " + clientID + "\n");
-                        await ReceiveMessagesAsync(webSocket, clientID); //Fix this
+                        await ReceiveMessageAsync(webSocket, clientID); // Fix this
 
                     }
                     catch(Exception exception)
@@ -60,7 +60,7 @@
                     {
                         if(socketContext != null)
                         {
-                            clients.TryRemove(Guid.NewGuid(), out _);
+                            clients.TryRemove(clientID, out _);
                         }
                     }
 

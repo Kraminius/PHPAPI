@@ -1,3 +1,5 @@
+using PeopleHelpPeople.Model;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -23,3 +25,14 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+//New chat adition
+public class Program
+{
+
+    public static async Task main(String[] args)
+    {
+    var server = new WebSocketServer("http//localhost:8080/");
+    await server.StartAsync();
+    }
+}
