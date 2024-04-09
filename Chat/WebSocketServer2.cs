@@ -95,13 +95,17 @@ namespace PeopleHelpPeople.Model
         }
 
         //Send the mnessage to other client
-        private async async SendMessage(Guid reciever, string message)
+        private async Task SendMessage(Guid reciever, string message)
         {
             if(clients.TryGetValue(reciever, out WebSocket recieverSocket))
             {
                 var buffer = Encoding.UTF8.GetBytes(message);
                 await recieverSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
 
+            }
+            else
+            {
+                Console.WriteLine("Not able to send message!");
             }
         }
 
