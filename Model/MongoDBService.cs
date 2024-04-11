@@ -12,6 +12,7 @@ namespace PeopleHelpPeople.Model
     public class MongoDBService
     {
         private readonly IMongoCollection<UserGeolocation> _geolocations;
+        private readonly IMongoCollection<ChatUser> _users;
 
         public MongoDBService(IOptions<MongoDBSettings> settings)
         {
@@ -19,6 +20,7 @@ namespace PeopleHelpPeople.Model
             Console.WriteLine("WHATUP");
             var client = new MongoClient(settings.Value.ConnectionString);
             var database = client.GetDatabase(settings.Value.DatabaseName);
+            _users = database.GetCollection<ChatUser>("users");
             _geolocations = database.GetCollection<UserGeolocation>(settings.Value.GeolocationCollectionName);
 
             CreateGeospatialIndex();
@@ -28,6 +30,23 @@ namespace PeopleHelpPeople.Model
         {
             var indexKeysDefinition = Builders<UserGeolocation>.IndexKeys.Geo2DSphere(x => x.Location);
             _geolocations.Indexes.CreateOne(new CreateIndexModel<UserGeolocation>(indexKeysDefinition));
+        }
+        //NEW
+        public async Task AddUserAsync(ChatUser user)
+        {
+            await _users.InsertOneAsync(user);
+        }
+
+        public async Task<ChatUser> FindUserByIdAsync(string userId)
+        {
+            return await _users.Find(u => u.Id == userId).FirstOrDefaultAsync();
+        }
+
+        public async Task UpdateUserLocationAsync(string userId, double latitude, double longitude)
+        {
+            var filter = Builders<ChatUser>.Filter.Eq(u => u.Id, userId);
+            var update = Builders<ChatUser>.Update.Set(u => u.Location, GeoJson.Point(GeoJson.Geographic(longitude, latitude)));
+            await _users.UpdateOneAsync(filter, update);
         }
 
         public async Task InsertGeolocationAsync(UserGeolocation geolocation)
