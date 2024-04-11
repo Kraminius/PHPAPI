@@ -24,15 +24,9 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Start WebSocket server
+var webSocketServer = new WebSocketServer2("http://localhost:5000/");
+_ = webSocketServer.StartUp();
+
 app.Run();
 
-//New chat adition
-public class Program
-{
-
-    public static async Task main(String[] args)
-    {
-    var server = new WebSocketServer("http//localhost:8080/");
-    await server.StartAsync();
-    }
-}

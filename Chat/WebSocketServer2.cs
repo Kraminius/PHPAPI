@@ -45,7 +45,7 @@ namespace PeopleHelpPeople.Model
                     clients.TryAdd(clientID, webSocket);
 
                     //Handle the client request
-                    _ = Task.Run(() => handleClient(clientID, webSocket));
+                    _ = Task.Run(() => HandleClient(clientID, webSocket));
 
                 }
                 //Error
@@ -95,19 +95,22 @@ namespace PeopleHelpPeople.Model
         }
 
         //Send the mnessage to other client
-        private async Task SendMessage(Guid reciever, string message)
+        private async Task SendMessage(string receiver, string message)
         {
-            if(clients.TryGetValue(reciever, out WebSocket recieverSocket))
+            //See if the user exists and is connected
+            if (Guid.TryParse(receiver, out Guid receiverGuid) && clients.TryGetValue(receiverGuid, out WebSocket receiverSocket))
             {
                 var buffer = Encoding.UTF8.GetBytes(message);
-                await recieverSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
+                await receiverSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
 
+                Console.WriteLine("Send message: " + message + " to: " + receiver);
             }
             else
             {
-                Console.WriteLine("Not able to send message!");
+                Console.WriteLine("Not able to send message to receiver: " + receiver);
             }
         }
+
 
 
         //Define Message object
