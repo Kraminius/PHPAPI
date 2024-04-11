@@ -13,6 +13,9 @@ builder.Services.AddSingleton<MongoDBService>();
 
 builder.Services.AddControllers();
 
+//Add chat
+builder.Services.AddSingleton<WebSocketMessageHandler>();
+
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -52,6 +55,31 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
+//Using WebSockets in the program
+app.UseWebSockets();
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/ws")
+    {
+        if (context.WebSockets.IsWebSocketRequest)
+        {
+            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+            var webSocketHandler = context.RequestServices.GetRequiredService<WebSocketMessageHandler>();
+            var userId = Guid.NewGuid();
+            await webSocketHandler.Handle(userId, webSocket);
+        }
+        else
+        {
+            context.Response.StatusCode = 400;
+        }
+    }
+    else
+    {
+        await next();
+    }
+});
 
 
 app.UseHttpsRedirection();
