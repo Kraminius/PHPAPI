@@ -22,8 +22,10 @@ public class GeolocationController : ControllerBase
     }
 
     [HttpGet("findNearest")]
+    public ActionResult<string> FindNearest() { 
+    /*
     public async Task<ActionResult<UserGeolocation>> FindNearest(double latitude, double longitude, int meters)
-    {
+    {/*
         try
         {
             var nearestUser = await _mongoDBService.FindNearestAsync(latitude, longitude, meters);
@@ -37,5 +39,7 @@ public class GeolocationController : ControllerBase
         {
             return StatusCode(500, "An error occurred while processing your request.");
         }
+        */
+        return Ok("hey");
     }
 }

@@ -32,9 +32,11 @@
       "commandName": "Docker",
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
-      "environmentVariables": {
-        "ASPNETCORE_HTTPS_PORTS": "8081",
-        "ASPNETCORE_HTTP_PORTS": "8080"
+        "environmentVariables": {
+            "ASPNETCORE_HTTPS_PORTS": "8081",
+            "ASPNETCORE_HTTP_PORTS": "8080",
+            "ASPNETCORE_URLS": "https://+;http://+",
+            "DOTNET_SYSTEM_NET_HTTP_USESOCKETSHTTPHANDLER": "0"
       },
       "publishAllPorts": true,
       "useSSL": true

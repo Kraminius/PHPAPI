@@ -1,6 +1,7 @@
 using PeopleHelpPeople.Model;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
+using Microsoft.AspNetCore.HttpOverrides;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +23,24 @@ var app = builder.Build();
 
 // Insert mock data if needed
 var serviceProvider = app.Services.CreateScope().ServiceProvider;
-var mongoDBService = serviceProvider.GetService<MongoDBService>();
+MongoDBService mongoDBService = null;
+
+int retries = 0;
+int maxRetries = 10;
+int delayMilliseconds = 500;
+
+while (retries < maxRetries)
+    try {
+    mongoDBService = serviceProvider.GetService<MongoDBService>();
+        break;
+    } catch (Exception ex)
+    {
+        Console.WriteLine(ex.ToString());
+        retries++;
+        await Task.Delay(delayMilliseconds);
+        delayMilliseconds *= 2;
+    }
+
 
 if (mongoDBService != null)
 {
@@ -59,5 +77,10 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 app.Run();
