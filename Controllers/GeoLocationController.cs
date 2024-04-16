@@ -1,45 +1,45 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using PeopleHelpPeople.Model;
+using PHPAPI.Model;
 
-[Route("api/[controller]")]
-[ApiController]
-public class GeolocationController : ControllerBase
+namespace PHPAPI.Controllers
 {
-    private readonly MongoDBService _mongoDBService;
-
-    public GeolocationController(MongoDBService mongoDBService)
+    [Route("api/[controller]")]
+    [ApiController]
+    public class GeolocationController : ControllerBase
     {
-        _mongoDBService = mongoDBService;
-    }
+        private readonly MongoDBService _mongoDBService;
 
-    [HttpPost("insert")]
-    public async Task<IActionResult> Post([FromBody] UserGeolocation geolocation)
-    {
-        await _mongoDBService.InsertGeolocationAsync(geolocation);
-        return Ok("Geolocation inserted successfully.");
-    }
-
-    [HttpGet("findNearest")]
-    public ActionResult<string> FindNearest() { 
-    /*
-    public async Task<ActionResult<UserGeolocation>> FindNearest(double latitude, double longitude, int meters)
-    {/*
-        try
+        public GeolocationController(MongoDBService mongoDBService)
         {
-            var nearestUser = await _mongoDBService.FindNearestAsync(latitude, longitude, meters);
-            if (nearestUser != null)
+            _mongoDBService = mongoDBService;
+        }
+
+        [HttpPost("insert")]
+        public async Task<IActionResult> Post([FromBody] UserGeolocation geolocation)
+        {
+            await _mongoDBService.InsertGeolocationAsync(geolocation);
+            return Ok("Geolocation inserted successfully.");
+        }
+
+        [HttpGet("findNearest")]
+
+        public async Task<ActionResult<UserGeolocation>> FindNearest(double latitude, double longitude, int meters)
+        {
+            try
             {
-                return Ok(nearestUser);
+                var nearestUser = await _mongoDBService.FindNearestAsync(latitude, longitude, meters);
+                if (nearestUser != null)
+                {
+                    return Ok(nearestUser);
+                }
+                return NotFound("No nearby user found.");
             }
-            return NotFound("No nearby user found.");
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
         }
-        catch (Exception ex)
-        {
-            return StatusCode(500, "An error occurred while processing your request.");
-        }
-        */
-        return Ok("hey");
     }
 }

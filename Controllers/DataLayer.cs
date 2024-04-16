@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PeopleHelpPeople.Model;
+using PHPAPI.Model;
 
-namespace PeopleHelpPeople.Controllers
+namespace PHPAPI.Controllers
 {
     public static class DataLayer
     {

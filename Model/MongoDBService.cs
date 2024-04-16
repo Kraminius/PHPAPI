@@ -1,13 +1,13 @@
 using MongoDB.Driver;
 using System.Threading.Tasks;
-using PeopleHelpPeople.Model;
+using PHPAPI.Model;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System;
 using MongoDB.Driver.GeoJsonObjectModel;
 using MongoDB.Bson;
 
-namespace PeopleHelpPeople.Model
+namespace PHPAPI.Model
 {
     public class MongoDBService
     {

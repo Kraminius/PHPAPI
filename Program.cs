@@ -1,7 +1,11 @@
-using PeopleHelpPeople.Model;
+using PHPAPI.Model;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
 using Microsoft.AspNetCore.HttpOverrides;
+using PHPAPI.Services;
+using PHPAPI.Controllers;
+using Azure.Identity;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +27,7 @@ var app = builder.Build();
 
 // Insert mock data if needed
 var serviceProvider = app.Services.CreateScope().ServiceProvider;
-MongoDBService mongoDBService = null;
+MongoDBService? mongoDBService = null;
 
 int retries = 0;
 int maxRetries = 10;
@@ -70,7 +74,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+builder.Configuration.AddAzureKeyVault(
+    new Uri("https://phpjwt.vault.azure.net/"),
+    new DefaultAzureCredential());
 
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+
+builder.Services.AddControllers()
+        .AddApplicationPart(typeof(AuthController).Assembly);
 
 app.UseHttpsRedirection();
 

@@ -1,4 +1,4 @@
-﻿namespace PeopleHelpPeople.Model
+﻿namespace PHPAPI.Model
 {
     public class Match
     {

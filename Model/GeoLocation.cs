@@ -2,7 +2,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver.GeoJsonObjectModel;
 
-namespace PeopleHelpPeople.Model
+namespace PHPAPI.Model
 {
     public class UserGeolocation
     {

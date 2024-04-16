@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PeopleHelpPeople.Model; // Import the namespace where your models are located
+using PHPAPI.Model; // Import the namespace where your models are located
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
-namespace PeopleHelpPeople.Controllers
+namespace PHPAPI.Controllers
 {
     [Route("api/[controller]")] // Defines the route template
     [ApiController] // Signifies that this controller responds to web API requests
