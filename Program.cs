@@ -1,11 +1,8 @@
 using PHPAPI.Model;
-using Microsoft.Extensions.DependencyInjection;
-using System.Diagnostics;
 using Microsoft.AspNetCore.HttpOverrides;
 using PHPAPI.Services;
 using PHPAPI.Controllers;
 using Azure.Identity;
-using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 
 var builder = WebApplication.CreateBuilder(args);

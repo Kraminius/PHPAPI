@@ -10,7 +10,7 @@ namespace PHPAPI.Model
         public ObjectId Id { get; set; }
 
         [BsonElement("userId")]
-        public string UserId { get; set; }
+        public string? UserId { get; set; }
 
         [BsonElement("latitude")]
         public double Latitude { get; set; }
@@ -18,7 +18,7 @@ namespace PHPAPI.Model
         [BsonElement("longitude")]
         public double Longitude { get; set; }
 
-        public GeoJsonPoint<GeoJson2DGeographicCoordinates> Location { get; set; }
+        public GeoJsonPoint<GeoJson2DGeographicCoordinates>? Location { get; set; }
 
         public double distance { get; set; }
 
