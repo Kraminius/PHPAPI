@@ -71,7 +71,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-builder.Configuration.AddAzureKeyVault(
+
+/*builder.Configuration.AddAzureKeyVault(
     new Uri("https://phpjwt.vault.azure.net/"),
     new DefaultAzureCredential());
 
@@ -79,7 +80,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddControllers()
-        .AddApplicationPart(typeof(AuthController).Assembly);
+        .AddApplicationPart(typeof(AuthController).Assembly);*/
 
 app.UseHttpsRedirection();
 

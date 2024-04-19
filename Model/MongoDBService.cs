@@ -35,6 +35,17 @@ namespace PHPAPI.Model
             await _geolocations.InsertOneAsync(geolocation);
         }
 
+        public async Task DeleteAllGeolocationsAsync()
+        {
+            // This will delete all documents from the _geolocations collection
+            await _geolocations.DeleteManyAsync(Builders<UserGeolocation>.Filter.Empty);
+        }
+
+        public async Task<List<UserGeolocation>> GetAllGeolocationsAsync()
+        {
+            return await _geolocations.Find(_ => true).ToListAsync();
+        }
+
         public async Task InsertMockDataIfNeededAsync()
         {
             try
