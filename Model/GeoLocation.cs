@@ -35,6 +35,8 @@ namespace PHPAPI.Model
         public string? LocationID { get; set; }
         [BsonElement("brandId")]
         public string? BrandId { get; set; }
+        [BsonElement("wares")]
+        public List<Ware>? Wares { get; set; }
 
         [BsonElement("latitude")]
         public double Latitude { get; set; }

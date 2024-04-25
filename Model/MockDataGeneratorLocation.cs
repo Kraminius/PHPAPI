@@ -80,5 +80,56 @@ namespace PHPAPI.Model
             return mockData;
         }
 
+        //Create mock stores
+        public static List<BrandGeolocation> GenerateMockStoresForCopenhagen(int numberOfStores, int waresInStore)
+        {
+            var mockData = new List<BrandGeolocation>();
+
+            for (int i = 0; i < numberOfStores; i++)
+            {
+                // Shift between generating mockNetto and mockBrugsen
+                string brand;
+                if (i % 2 == 0)
+                    brand = "mockNetto";
+                else
+                    brand = "mockBrugsen";
+
+                //Wares for the store (Might remove)
+                var wares = new List<Ware>();
+                for (int j = 0; j < waresInStore; j++)
+                {
+                    var ware = new Ware(
+                        name: $"mockWare{j + 1} of {brand}",
+                        description: $"mockDescription for Ware{j + 1} of {brand}",
+                        manufactorer: brand,
+                        price: (float)(_random.NextDouble() * 10),
+                        expiration: DateTime.UtcNow.AddDays(_random.Next(1, 365))
+                    );
+
+                    wares.Add(ware);
+                }
+
+                    // Generate random coordinates within the specified range for Copenhagen
+                    double latitude = 55.615 + _random.NextDouble() * (55.675 - 55.615);
+                    double longitude = 12.523 + _random.NextDouble() * (12.650 - 12.523);
+
+                    // Create a GeoJsonPoint for the Location
+                    var location = GeoJson.Point(GeoJson.Geographic(longitude, latitude));
+
+                    var mockGeolocation = new BrandGeolocation
+                    {
+                        LocationID = $"mockBrandId{i + 1}",
+                        Location = location,
+                        BrandId = brand,
+                        Wares = wares //Might remove
+
+                    };
+
+                    mockData.Add(mockGeolocation);
+                }
+
+                return mockData;
+            }
+
+        }
     }
-}

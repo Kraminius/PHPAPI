@@ -139,7 +139,7 @@ namespace PHPAPI.Model
 
         public async Task DeleteAllGeolocationsAsync()
         {
-            // This will delete all documents from the _geolocations collection
+            // This will delete all documents from the brandGeolocations collection
             await brandGeolocations.DeleteManyAsync(Builders<BrandGeolocation>.Filter.Empty);
         }
 
