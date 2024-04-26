@@ -49,10 +49,13 @@ namespace PHPAPI.Model
 
                 var location = GeoJson.Point(GeoJson.Geographic(longitude, latitude));
 
+                var h3Index = H3Index.FromLatLng(new LatLng(latitude, longitude), 7);
+
                 var mockGeolocation = new UserGeolocation
                 {
                     UserId = $"AarhusUserId{i + 1}",
-                    Location = location
+                    Location = location,
+                    H3Index = h3Index.ToString()
                 };
 
                 mockData.Add(mockGeolocation);
@@ -73,10 +76,13 @@ namespace PHPAPI.Model
 
                 var location = GeoJson.Point(GeoJson.Geographic(longitude, latitude));
 
+                var h3Index = H3Index.FromLatLng(new LatLng(latitude, longitude), 7);
+
                 var mockGeolocation = new UserGeolocation
                 {
                     UserId = $"MonUserId{i + 1}",
-                    Location = location
+                    Location = location,
+                    H3Index = h3Index.ToString()
                 };
 
                 mockData.Add(mockGeolocation);
