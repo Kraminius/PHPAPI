@@ -111,72 +111,49 @@ namespace PHPAPI.Model
     }
 
     //New Brands
-    public class MongoBrandDBService
+    public class MongoStoreDBService
     {
-        private readonly IMongoCollection<BrandGeolocation> brandGeolocations;
+        private readonly IMongoCollection<Store> store;
 
-        public MongoBrandDBService(IOptions<MongoDBSettings> settings)
+        public MongoStoreDBService(IOptions<MongoDBSettings> settings)
         {
 
             Console.WriteLine("NOT MUCH, YOU?");
             var client = new MongoClient(settings.Value.ConnectionString);
             var database = client.GetDatabase(settings.Value.DatabaseName);
-            brandGeolocations = database.GetCollection<BrandGeolocation>(settings.Value.GeolocationCollectionName);
+            store = database.GetCollection<Store>(settings.Value.GeolocationCollectionName);
 
             CreateGeospatialIndex();
         }
 
         private void CreateGeospatialIndex()
         {
-            var indexKeysDefinition = Builders<BrandGeolocation>.IndexKeys.Geo2DSphere(x => x.Location);
-            brandGeolocations.Indexes.CreateOne(new CreateIndexModel<BrandGeolocation>(indexKeysDefinition));
+            var indexKeysDefinition = Builders<Store>.IndexKeys.Geo2DSphere(x => x.Location);
+            store.Indexes.CreateOne(new CreateIndexModel<Store>(indexKeysDefinition));
         }
 
-        public async Task InsertGeolocationAsync(BrandGeolocation geolocation)
+        public async Task InsertGeolocationAsync(Store geolocation)
         {
-            await brandGeolocations.InsertOneAsync(geolocation);
+            await store.InsertOneAsync(geolocation);
         }
 
         public async Task DeleteAllGeolocationsAsync()
         {
-            // This will delete all documents from the brandGeolocations collection
-            await brandGeolocations.DeleteManyAsync(Builders<BrandGeolocation>.Filter.Empty);
+            // This will delete all documents from the Store collection
+            await store.DeleteManyAsync(Builders<Store>.Filter.Empty);
         }
 
-        public async Task<List<BrandGeolocation>> GetAllGeolocationsAsync()
+        public async Task<List<Store>> GetAllGeolocationsAsync()
         {
-            return await brandGeolocations.Find(_ => true).ToListAsync();
+            return await store.Find(_ => true).ToListAsync();
         }
 
         public async Task InsertMockDataIfNeededAsync()
         {
             try
             {
-                var mockGeolocations = new List<BrandGeolocation>();
-
-                for (int i = 1; i <= 10; i++)
-                {
-                    // Create a GeoJsonPoint for the Location
-                    var location = GeoJson.Point(GeoJson.Geographic(10 + i, 54)); // Very important GeoJson use (longitude, latitude) and Google map use (latitude, longitude)
-
-                    string brand;
-                    if (i % 2 == 0)
-                        brand = "mockNetto";
-                    else
-                        brand = "mockBrugsen";
-
-                    var mockGeolocation = new BrandGeolocation
-                    {
-                        LocationID = $"mockLocationId{i}",
-                        Location = location,
-                        BrandId = brand
-                    };
-
-                    mockGeolocations.Add(mockGeolocation);
-                }
-
                 // Insert all mock geolocations into the database
-                await brandGeolocations.InsertManyAsync(mockGeolocations);
+                await store.InsertManyAsync(MockDataGeneratorLocation.GenerateMockStoresForCopenhagen(10, 2, 8));
             }
             catch (Exception ex)
             {
@@ -184,18 +161,19 @@ namespace PHPAPI.Model
             }
         }
 
-        public async Task<BrandGeolocation> FindNearestAsync(double latitude, double longitude, int meters, string brand)
+        public async Task<Store> FindNearestAsync(double latitude, double longitude, int meters, string brand)
         {
 
             var point = GeoJson.Point(GeoJson.Geographic(longitude, latitude)); // Very important GeoJson use (longitude, latitude) and Google map use (latitude, longitude)
-            var locationFilter = Builders<BrandGeolocation>.Filter.NearSphere(x => x.Location, point, maxDistance: meters);
-            var brandFilter = Builders<BrandGeolocation>.Filter.Eq(x => x.BrandId, brand);
+            var locationFilter = Builders<Store>.Filter.NearSphere(x => x.Location, point, maxDistance: meters); //Stores close by
+            //var brandFilter = Builders<Store>.Filter.Eq((x => x.Brand.name, brand); //Stores with mathing brand
+            var brandFilter = Builders<Store>.Filter.Eq(x => x.Brand.Name, brand);
 
-            var combinedFilter = Builders<BrandGeolocation>.Filter.And(locationFilter, brandFilter);
+            var combinedFilter = Builders<Store>.Filter.And(locationFilter, brandFilter);
 
-            Console.WriteLine(brandGeolocations.Find(combinedFilter).FirstOrDefaultAsync());
+            Console.WriteLine(store.Find(combinedFilter).FirstOrDefaultAsync());
 
-            return await brandGeolocations.Find(combinedFilter).FirstOrDefaultAsync();
+            return await store.Find(combinedFilter).FirstOrDefaultAsync();
         }
         
 
