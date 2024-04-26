@@ -25,7 +25,7 @@ var app = builder.Build();
 // Insert mock data if needed
 var serviceProvider = app.Services.CreateScope().ServiceProvider;
 MongoDBService? mongoDBService = null;
-//MongoStoreDBService? mongoStoreDBService = null;
+MongoStoreDBService? mongoStoreDBService = null;
 
 int retries = 0;
 int maxRetries = 10;
@@ -34,7 +34,7 @@ int delayMilliseconds = 500;
 while (retries < maxRetries)
     try {
     mongoDBService = serviceProvider.GetService<MongoDBService>();
-    //mongoStoreDBService = serviceProvider.GetService<MongoStoreDBService>();
+    mongoStoreDBService = serviceProvider.GetService<MongoStoreDBService>();
         break;
     } catch (Exception ex)
     {
@@ -67,7 +67,6 @@ else
 }
 
 // Testing closest store
-/*
 double storeLatitude = 46;
 double storeLongitude = 5;
 string store = "mockBrand 1";
@@ -82,7 +81,7 @@ if (nearestStore != null)
 else
 {
     Console.WriteLine("No stores found nearby.");
-} */
+} 
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
