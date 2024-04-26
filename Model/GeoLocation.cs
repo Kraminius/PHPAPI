@@ -7,20 +7,14 @@ namespace PHPAPI.Model
     public class UserGeolocation
     {
         [BsonId]
-        public ObjectId Id { get; set; }
+        [BsonRepresentation(MongoDB.Bson.BsonType.String)]
+        public string UserId { get; set; }
 
-        [BsonElement("userId")]
-        public string? UserId { get; set; }
+        [BsonElement("location")]
+        public GeoJsonPoint<GeoJson2DGeographicCoordinates> Location { get; set; }
 
-        [BsonElement("latitude")]
-        public double Latitude { get; set; }
-
-        [BsonElement("longitude")]
-        public double Longitude { get; set; }
-
-        public GeoJsonPoint<GeoJson2DGeographicCoordinates>? Location { get; set; }
-
-        public double distance { get; set; }
+        [BsonElement("h3Index")]
+        public string H3Index { get; set; }
 
     }
 }

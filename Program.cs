@@ -22,7 +22,30 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline if in development.
+// Insert mock data if needed
+var serviceProvider = app.Services.CreateScope().ServiceProvider;
+MongoDBService? mongoDBService = null;
+
+int retries = 0;
+int maxRetries = 10;
+int delayMilliseconds = 500;
+
+while (retries < maxRetries)
+    try {
+    mongoDBService = serviceProvider.GetService<MongoDBService>();
+        break;
+    } catch (Exception ex)
+    {
+        Console.WriteLine(ex.ToString());
+        retries++;
+        await Task.Delay(delayMilliseconds);
+        delayMilliseconds *= 2;
+    }
+
+
+
+
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
