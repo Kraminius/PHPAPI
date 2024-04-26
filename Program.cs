@@ -43,26 +43,7 @@ while (retries < maxRetries)
     }
 
 
-if (mongoDBService != null)
-{
-    await mongoDBService.InsertMockDataIfNeededAsync();
-}
 
-// Testing closest target
-double latitude = 53;
-double longitude = 6;
-
-Console.WriteLine("Searching for " + latitude + ", " + longitude);
-
-var nearestUser = await mongoDBService?.FindNearestAsync(latitude, longitude, 100000000);
-if (nearestUser != null)
-{
-    Console.WriteLine($"Nearest User ID: {nearestUser.UserId}, Location: {nearestUser.Location.Coordinates.Latitude}, {nearestUser.Location.Coordinates.Longitude}");
-}
-else
-{
-    Console.WriteLine("No users found nearby.");
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
