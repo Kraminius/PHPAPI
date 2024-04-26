@@ -1,17 +1,18 @@
-﻿using System.Security.Claims;
+﻿using System;
+using System.Collections.Generic;
+using System.Security.Claims;
 using System.Text;
-using PHPAPI.Model;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
-
+using Microsoft.Extensions.Configuration;
+using PHPAPI.Model;
 
 namespace PHPAPI.Services
 {
     public class TokenService : ITokenService
     {
         private readonly IConfiguration _configuration;
+
         public TokenService(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -19,25 +20,27 @@ namespace PHPAPI.Services
 
         public string GenerateToken(User user)
         {
-            // Retrieve Secret from Azure Key Vault
-            var kvUri = _configuration["JWTTokenPHP"];
+            string secretKeyBase64 = Environment.GetEnvironmentVariable("JWTKEYPHPAPI");
+            if (string.IsNullOrEmpty(secretKeyBase64))
+            {
 
-            var client = new SecretClient(new Uri(kvUri), new DefaultAzureCredential());
-            KeyVaultSecret secret = client.GetSecret("JWTTokenPHP");
+                Console.WriteLine("Error: Secret key not configured.");
+                throw new InvalidOperationException("Secret key not configured.");
+            }
 
-            // Convert from Base64
-            string secretKeyBase64 = secret.Value;
+            // Convert from Base64 to bytes
             byte[] secretKeyBytes = Convert.FromBase64String(secretKeyBase64);
 
+            // Create symmetric security key
             var symmetricSecurityKey = new SymmetricSecurityKey(secretKeyBytes);
-
             var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256Signature);
 
+            // Define claims
             var claims = new List<Claim>
-    {
-        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-        new Claim(ClaimTypes.Name, user.Username)
-    };
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username)
+            };
 
             // Security Token Descriptor
             var tokenDescriptor = new SecurityTokenDescriptor

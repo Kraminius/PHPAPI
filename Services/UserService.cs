@@ -1,24 +1,47 @@
-﻿using MongoDB.Driver;
+﻿using PHPAPI.Model;
+using PHPAPI.Services;
+using MongoDB.Driver;
 
-namespace PHPAPI.Services
+public class UserService : IUserService
 {
-    public class UserService : IUserService
+    private readonly MongoDbUserContext _dbContext;
+
+    public UserService(MongoDbUserContext dbContext)
     {
-        private readonly IMongoCollection<Model.User> _usersCollection;
+        _dbContext = dbContext;
+    }
 
-        public UserService(IMongoDBContext context)
-        {
-            _usersCollection = context.GetCollection<Model.User>("Users");
-        }
+    public async Task CreateUserAsync(User user)
+    {
+        await _dbContext.Users.InsertOneAsync(user);
+    }
 
-        public async Task CreateUserAsync(Model.User user)
+    public async Task<User> AuthenticateUser(string username, string password)
+    {
+        var filter = Builders<User>.Filter.Eq("Username", username);
+        var user = await _dbContext.Users.Find(filter).FirstOrDefaultAsync();
+        if (user != null && VerifyPasswordHash(password, user.PasswordHash))
         {
-            await _usersCollection.InsertOneAsync(user);
+            return user;
         }
+        return null;
+    }
 
-        public async Task<Model.User> GetUserByUsernameAsync(string Username)
-        {
-            return await _usersCollection.Find(u => u.Username == Username).FirstOrDefaultAsync();
-        }
+    private string CreatePasswordHash(string password)
+    {
+        return Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password));
+    }
+
+    private bool VerifyPasswordHash(string password, string storedHash)
+    {
+        return CreatePasswordHash(password) == storedHash;
+    }
+
+    public Task<User> GetUserByUsernameAsync(string username)
+    {
+        var filter = Builders<User>.Filter.Eq("Username", username);
+        _ = _dbContext.FindUsersAsync(Builders<User>.Filter.Eq("Username", username));
+
+        return _dbContext.Users.Find(filter).FirstOrDefaultAsync();
     }
 }

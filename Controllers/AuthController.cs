@@ -1,9 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PHPAPI.Model;
-using PHPAPI.Service;
 using PHPAPI.Services;
 
 namespace PHPAPI.Controllers
@@ -24,58 +21,46 @@ namespace PHPAPI.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] User registrationInput)
         {
-            if (string.IsNullOrEmpty(registrationInput.Username))
+            if (string.IsNullOrEmpty(registrationInput.Username) || string.IsNullOrEmpty(registrationInput.PasswordHash) ||
+                string.IsNullOrEmpty(registrationInput.Email) || string.IsNullOrEmpty(registrationInput.Name) || 
+                string.IsNullOrEmpty(registrationInput.HomeAddress) || string.IsNullOrEmpty(registrationInput.WorkAddress))
             {
-                return BadRequest("Username is required");
+                return BadRequest("Missing required fields");
             }
 
-            if (string.IsNullOrEmpty(registrationInput.Password))
+            var existingUser = await _userService.GetUserByUsernameAsync(registrationInput.Username);
+            if (existingUser != null)
             {
-                return BadRequest("Password is required");
+                return BadRequest("Username already taken");
             }
 
-            if (string.IsNullOrEmpty(registrationInput.Email))
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(registrationInput.PasswordHash);
+
+            var newUser = new User
             {
-                return BadRequest("Email is required");
-            }
-
-            if (string.IsNullOrEmpty(registrationInput.Name))
-            {
-                return BadRequest("Name is required");
-            }
-
-
-
-            var salt = PasswordHasher.GenerateSalt();
-            var hashedPassword = PasswordHasher.Hash(registrationInput.Password, salt);
-
-            var newUser = new User(registrationInput.Username, registrationInput.Password, salt, registrationInput.Email, registrationInput.Name);
-
+                Username = registrationInput.Username,
+                PasswordHash = hashedPassword,
+                Email = registrationInput.Email,
+                Name = registrationInput.Name,
+                HomeAddress = registrationInput.HomeAddress,
+                WorkAddress = registrationInput.WorkAddress
+            };
 
             await _userService.CreateUserAsync(newUser);
-            return Ok("User registered");
+            return Ok("User registered successfully");
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] User model)
+        public async Task<IActionResult> Login([FromBody] User loginInput)
         {
-            var user = await _userService.GetUserByUsernameAsync(model.Username);
-
-            if (user == null)
-            {
-                return Unauthorized("Invalid username or password");
-            }
-
-            var isPasswordValid = BCrypt.Net.BCrypt.Verify(model.Password, user.Password);
-
-            if (!isPasswordValid)
+            var user = await _userService.GetUserByUsernameAsync(loginInput.Username);
+            if (user == null || !BCrypt.Net.BCrypt.Verify(loginInput.PasswordHash, user.PasswordHash))
             {
                 return Unauthorized("Invalid username or password");
             }
 
             var token = _tokenService.GenerateToken(user);
-
-            return Ok(new { token });
+            return Ok(new { Token = token, Username = user.Username });
         }
     }
 }
