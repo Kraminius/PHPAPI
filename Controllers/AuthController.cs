@@ -59,16 +59,27 @@ namespace PHPAPI.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] User loginInput)
+        public async Task<IActionResult> Login([FromBody] LoginModel loginInput)
         {
             var user = await _userService.GetUserByUsernameAsync(loginInput.Username);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(loginInput.PasswordHash, user.PasswordHash))
+            if (user == null)
+            {
+                return Unauthorized("Invalid username or password");
+            }
+
+            if (!VerifyPassword(loginInput.Password, user.PasswordHash, user.Salt))
             {
                 return Unauthorized("Invalid username or password");
             }
 
             var token = UserService.GenerateJwtToken(user.Username);
             return Ok(new { Token = token, Username = user.Username });
+        }
+
+        private bool VerifyPassword(string password, string storedHash, byte[] salt)
+        {
+            var hashOfInput = Convert.ToBase64String(HashPassword(password, salt));
+            return hashOfInput == storedHash;
         }
 
         private byte[] GenerateSalt()
@@ -81,11 +92,16 @@ namespace PHPAPI.Controllers
 
         private byte[] HashPassword(string password, byte[] salt)
         {
-            int iterations = 5000; //TODO: TEST PERFORMANCE, LOWER = QUICKER, HIGHER = SLOWER BUT MORE SECURE
-            var hashAlgorithm = HashAlgorithmName.SHA256;
+            int iterations = 600000;
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
+            return pbkdf2.GetBytes(32); // Creates a 256-bit hash
+        }
 
-            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, hashAlgorithm);
-            return pbkdf2.GetBytes(20);
+        private void SetPassword(User user, string password)
+        {
+            byte[] salt = GenerateSalt();
+            user.Salt = salt;
+            user.PasswordHash = Convert.ToBase64String(HashPassword(password, salt));
         }
     }
 }

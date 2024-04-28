@@ -60,10 +60,11 @@ public class UserService : IUserService
 
         return _mongoDBService.Users.Find(filter).FirstOrDefaultAsync();
         }
+
     public static string GenerateJwtToken(string username)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var keyFilePath = Environment.GetEnvironmentVariable("/etc/PHPAPI/keys");
+        var keyFilePath = Environment.GetEnvironmentVariable("JWT_KEY_PATH");
 
         try
         {
@@ -111,6 +112,5 @@ public class UserService : IUserService
         }
     }
 
-
-
+  
 }
