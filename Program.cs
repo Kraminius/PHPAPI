@@ -8,10 +8,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.Configure<MongoDBSettings>(
-    builder.Configuration.GetSection("MongoDBSettings"));
+builder.Configuration.GetSection("MongoDBSettings"));
 builder.Services.AddSingleton<MongoDBService>();
+
+
+builder.Services.AddScoped<MongoDBContext, MongoDBContext>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+
 
 builder.Services.AddControllers()
         .AddApplicationPart(typeof(AuthController).Assembly);

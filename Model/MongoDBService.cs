@@ -14,6 +14,7 @@ namespace PHPAPI.Model
     public class MongoDBService
     {
         private readonly IMongoCollection<UserGeolocation> _geolocations;
+        public IMongoCollection<User> Users { get; private set; }
 
         public MongoDBService(IOptions<MongoDBSettings> settings)
         {
@@ -23,6 +24,7 @@ namespace PHPAPI.Model
             var client = new MongoClient(settings.Value.ConnectionString);
             var database = client.GetDatabase(settings.Value.DatabaseName);
             _geolocations = database.GetCollection<UserGeolocation>(settings.Value.GeolocationCollectionName);
+            Users = database.GetCollection<User>(settings.Value.UserCollectionName);
 
             CreateGeospatialIndex();
         }
@@ -96,6 +98,23 @@ namespace PHPAPI.Model
         {
             var filter = Builders<UserGeolocation>.Filter.Eq(geo => geo.H3Index, h3Index);
             return await _geolocations.Find(filter).ToListAsync();
+        }
+
+
+        public async Task InsertUserAsync(User user)
+        {
+            await Users.InsertOneAsync(user);
+        }
+
+        public async Task<IEnumerable<User>> FindUsersAsync(FilterDefinition<User> filter)
+        {
+            var results = await Users.FindAsync(filter);
+            return results.ToEnumerable();
+        }
+
+        public async Task<DeleteResult> DeleteUserAsync(FilterDefinition<User> filter)
+        {
+            return await Users.DeleteOneAsync(filter);
         }
 
     }

@@ -1,25 +1,41 @@
 ﻿using PHPAPI.Model;
 using PHPAPI.Services;
 using MongoDB.Driver;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.OpenSsl;
+using Org.BouncyCastle.Security;
+
 
 public class UserService : IUserService
 {
-    private readonly MongoDbUserContext _dbContext;
+    private readonly MongoDBService _mongoDBService;
 
-    public UserService(MongoDbUserContext dbContext)
+    public UserService(MongoDBService mongoDBService)
     {
-        _dbContext = dbContext;
+        _mongoDBService = mongoDBService;
     }
 
     public async Task CreateUserAsync(User user)
     {
-        await _dbContext.Users.InsertOneAsync(user);
+        try
+        {
+            await _mongoDBService.Users.InsertOneAsync(user);
+        }
+        catch (MongoException ex)
+        {
+            Console.Error.WriteLine($"Error creating user: {ex.Message}");
+            Console.Error.WriteLine(ex.StackTrace);
+        }
     }
 
     public async Task<User> AuthenticateUser(string username, string password)
     {
         var filter = Builders<User>.Filter.Eq("Username", username);
-        var user = await _dbContext.Users.Find(filter).FirstOrDefaultAsync();
+        var user = await _mongoDBService.Users.Find(filter).FirstOrDefaultAsync();
         if (user != null && VerifyPasswordHash(password, user.PasswordHash))
         {
             return user;
@@ -40,8 +56,61 @@ public class UserService : IUserService
     public Task<User> GetUserByUsernameAsync(string username)
     {
         var filter = Builders<User>.Filter.Eq("Username", username);
-        _ = _dbContext.FindUsersAsync(Builders<User>.Filter.Eq("Username", username));
+        _ = _mongoDBService.FindUsersAsync(Builders<User>.Filter.Eq("Username", username));
 
-        return _dbContext.Users.Find(filter).FirstOrDefaultAsync();
+        return _mongoDBService.Users.Find(filter).FirstOrDefaultAsync();
+        }
+    public static string GenerateJwtToken(string username)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var keyFilePath = Environment.GetEnvironmentVariable("/etc/PHPAPI/keys");
+
+        try
+        {
+            var privateKey = File.ReadAllText(keyFilePath);
+            var key = ReadPublicKey(privateKey);
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
+
+            var claims = new[]
+            {
+            new Claim(ClaimTypes.Name, username)
+        };
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials = credentials
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"An error occurred while generating JWT: {ex.Message}");
+            return null;
+        }
     }
+
+
+    public static RsaSecurityKey ReadPublicKey(string pemFileContent)
+    {
+        using (var reader = new StringReader(pemFileContent))
+        {
+            var pemReader = new PemReader(reader);
+            var publicKeyParameters = (RsaKeyParameters)pemReader.ReadObject();
+            var rsa = RSA.Create();
+            var rsaParameters = new RSAParameters
+            {
+                Modulus = publicKeyParameters.Modulus.ToByteArrayUnsigned(),
+                Exponent = publicKeyParameters.Exponent.ToByteArrayUnsigned()
+            };
+            rsa.ImportParameters(rsaParameters);
+            return new RsaSecurityKey(rsa);
+        }
+    }
+
+
+
 }

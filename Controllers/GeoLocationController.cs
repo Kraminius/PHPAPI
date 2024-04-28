@@ -16,6 +16,7 @@ namespace PHPAPI.Controllers
 
         public GeolocationController(MongoDBService mongoDBService)
         {
+            Console.WriteLine("I am in geolocationcontroller.");
             _mongoDBService = mongoDBService;
         }
 
