@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.OpenSsl;
 using Org.BouncyCastle.Security;
+using System.Text;
 
 
 public class UserService : IUserService
@@ -64,13 +65,14 @@ public class UserService : IUserService
     public static string GenerateJwtToken(string username)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var keyFilePath = Environment.GetEnvironmentVariable("JWT_KEY_PATH");
+        var encodedKey = Environment.GetEnvironmentVariable("PRIVATE_KEY");
 
         try
         {
-            var privateKey = File.ReadAllText(keyFilePath);
-            var key = ReadPublicKey(privateKey);
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.RsaSha256);
+            var privateKey = Encoding.UTF8.GetString(Convert.FromBase64String(encodedKey));
+            var rsa = new RSACryptoServiceProvider();
+            rsa.ImportRSAPrivateKey(Convert.FromBase64String(privateKey), out _);
+            var credentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
 
             var claims = new[]
             {
