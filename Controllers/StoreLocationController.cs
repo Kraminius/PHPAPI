@@ -40,7 +40,7 @@ namespace PHPAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "An error occured finding the store");
+                return StatusCode(500, "An error occured finding the store, erro:" + ex.Message);
             }
         }
 
@@ -93,16 +93,16 @@ namespace PHPAPI.Controllers
         {
             try
             {
-                var matchingGeolocations = await DBService.FindStoreByH3IndexAsync(h3Index, brandName);
-                if (matchingGeolocations != null && matchingGeolocations.Count > 0)
+                var matchingStorelocations = await DBService.FindStoreByH3IndexAsync(h3Index, brandName);
+                if (matchingStorelocations != null && matchingStorelocations.Count > 0)
                 {
-                    return Ok(matchingGeolocations);
+                    return Ok(matchingStorelocations);
                 }
-                return NotFound("No geolocations found with the given H3 index.");
+                return NotFound("No stores found with the given H3 index.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred while retrieving geolocations: " + ex.Message);
+                return StatusCode(500, "An error occurred while retrieving stores: " + ex.Message);
             }
         }
 
