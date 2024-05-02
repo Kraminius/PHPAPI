@@ -14,6 +14,8 @@ namespace PHPAPI.Model
     public class MongoDBService
     {
         private readonly IMongoCollection<UserGeolocation> _geolocations;
+        //Store
+        private readonly IMongoCollection<Store> stores;
         public IMongoCollection<User> Users { get; private set; }
 
         public MongoDBService(IOptions<MongoDBSettings> settings)
@@ -24,6 +26,8 @@ namespace PHPAPI.Model
             var client = new MongoClient(settings.Value.ConnectionString);
             var database = client.GetDatabase(settings.Value.DatabaseName);
             _geolocations = database.GetCollection<UserGeolocation>(settings.Value.GeolocationCollectionName);
+            //Store
+            stores = database.GetCollection<Store>("stores");
             Users = database.GetCollection<User>(settings.Value.UserCollectionName);
 
             CreateGeospatialIndex();
@@ -38,6 +42,13 @@ namespace PHPAPI.Model
         {
             var indexKeysDefinition = Builders<UserGeolocation>.IndexKeys.Geo2DSphere(x => x.Location);
             _geolocations.Indexes.CreateOne(new CreateIndexModel<UserGeolocation>(indexKeysDefinition));
+        }
+
+        //Store
+        private void CreateGeospatialIndexStore()
+        {
+            var indexKeysDefinition = Builders<Store>.IndexKeys.Geo2DSphere(x => x.Location);
+            stores.Indexes.CreateOne(new CreateIndexModel<Store>(indexKeysDefinition));
         }
 
         public async Task InsertGeolocationAsync(UserGeolocation geolocation)
@@ -100,10 +111,36 @@ namespace PHPAPI.Model
             return await _geolocations.Find(filter).ToListAsync();
         }
 
+        //Store
+        public async Task<List<Store>> FindNearestStoreAsync(double latitude, double longitude, int meters, string brandName)
+        {
+            var point = GeoJson.Point(GeoJson.Geographic(longitude, latitude)); // Very important GeoJson use (longitude, latitude) and Google map use (latitude, longitude)
+            var filter1 = Builders<Store>.Filter.NearSphere(x => x.Location, point, maxDistance: meters);
+            var filter2 = Builders<Store>.Filter.Eq("brand.name", brandName);
+            var finalFilter = Builders<Store>.Filter.And(filter1, filter2);
+
+            return await stores.Find(finalFilter).ToListAsync();
+        }
+
+        //Store
+        public async Task<List<Store>> FindStoreByH3IndexAsync(string h3Index, string brandName)
+        {
+            var filter1 = Builders<Store>.Filter.Eq(geo => geo.H3Index, h3Index);
+            var filter2 = Builders<Store>.Filter.Eq("brand.name", brandName);
+            var finalFilter = Builders<Store>.Filter.And(filter1, filter2);
+            return await stores.Find(finalFilter).ToListAsync();
+        }
+
 
         public async Task InsertUserAsync(User user)
         {
             await Users.InsertOneAsync(user);
+        }
+
+        //Store
+        public async Task InsertStoreAsync(Store store)
+        {
+            await stores.InsertOneAsync(store);
         }
 
         public async Task<IEnumerable<User>> FindUsersAsync(FilterDefinition<User> filter)
