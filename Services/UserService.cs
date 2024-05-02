@@ -65,15 +65,21 @@ public class UserService : IUserService
     public static string GenerateJwtToken(string username)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var encodedKey = Environment.GetEnvironmentVariable("PRIVATE_KEY");
+        var keyPath = "/container-secure-dir/private_key.pem";
+        RSA rsa = null;  // Declare rsa outside of using block
 
         try
         {
-            var privateKey = Encoding.UTF8.GetString(Convert.FromBase64String(encodedKey));
-            var rsa = new RSACryptoServiceProvider();
-            rsa.ImportRSAPrivateKey(Convert.FromBase64String(privateKey), out _);
-            var credentials = new SigningCredentials(new RsaSecurityKey(rsa), SecurityAlgorithms.RsaSha256);
+            rsa = new RSACryptoServiceProvider();
+            string privateKeyContent = File.ReadAllText(keyPath);
+            rsa.ImportFromPem(privateKeyContent.ToCharArray());
 
+            var credentials = new SigningCredentials(
+                new RsaSecurityKey(rsa),
+                SecurityAlgorithms.RsaSha256)
+            {
+                CryptoProviderFactory = new CryptoProviderFactory { CacheSignatureProviders = false }
+            };
             var claims = new[]
             {
             new Claim(ClaimTypes.Name, username)

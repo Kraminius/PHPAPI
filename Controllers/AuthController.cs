@@ -31,6 +31,16 @@ namespace PHPAPI.Controllers
                 return BadRequest("Missing required fields");
             }
 
+            if(registrationInput.Username.Length < 4 || registrationInput.Username.Length > 20)
+            {
+                return BadRequest("Username must be between 4 and 20 characters");
+            }
+
+            if(registrationInput.PasswordHash.Length < 8 || registrationInput.PasswordHash.Length > 20)
+            {
+                return BadRequest("Password must be between 8 and 20 characters");
+            }
+
             byte[] salt = GenerateSalt();
             string hashedPassword = Convert.ToBase64String(HashPassword(registrationInput.PasswordHash, salt));
 

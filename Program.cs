@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.HttpOverrides;
 using PHPAPI.Services;
 using PHPAPI.Controllers;
 using Azure.Identity;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +27,27 @@ builder.Services.AddControllers()
 // Swagger configuration
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new RsaSecurityKey(GetPublicKey()),
+            ValidateIssuer = false,
+            ValidateAudience = false
+        };
+    });
+
+static RSA GetPublicKey() //for RSA256 assymetric auth of AUTH request.
+{
+    var publicKeyPath = "/container-secure-dir/public_key.pem";
+    using var rsa = RSA.Create();
+    var publicKeyContent = File.ReadAllText(publicKeyPath);
+    rsa.ImportFromPem(publicKeyContent.ToCharArray());
+    return rsa;
+}
 
 var app = builder.Build();
 
@@ -58,6 +83,7 @@ if (app.Environment.IsDevelopment())
 
 // Middleware
 app.UseHttpsRedirection();
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {

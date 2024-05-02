@@ -5,6 +5,7 @@ using H3.Model;
 using H3;
 using Microsoft.AspNetCore.Mvc;
 using PHPAPI.Model;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PHPAPI.Controllers
 {
@@ -28,6 +29,7 @@ namespace PHPAPI.Controllers
         }
 
         [HttpGet("findNearest")]
+        [Authorize]
         public async Task<ActionResult<UserGeolocation>> FindNearest(double latitude, double longitude, int meters)
         {
             try
