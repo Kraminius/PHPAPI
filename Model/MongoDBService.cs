@@ -38,6 +38,12 @@ namespace PHPAPI.Model
             await _geolocations.InsertManyAsync(geolocations);
         }
 
+        //Store
+        public async Task InsertManyStoresAsync(List<Store> storesInsert)
+        {
+            await stores.InsertManyAsync(storesInsert);
+        }
+
         private void CreateGeospatialIndex()
         {
             var indexKeysDefinition = Builders<UserGeolocation>.IndexKeys.Geo2DSphere(x => x.Location);
@@ -62,9 +68,22 @@ namespace PHPAPI.Model
             await _geolocations.DeleteManyAsync(Builders<UserGeolocation>.Filter.Empty);
         }
 
+        //Store
+        public async Task DeleteAllStoresAsync()
+        {
+            // This will delete all documents from the _geolocations collection
+            await stores.DeleteManyAsync(Builders<Store>.Filter.Empty);
+        }
+
         public async Task<List<UserGeolocation>> GetAllGeolocationsAsync()
         {
             return await _geolocations.Find(_ => true).ToListAsync();
+        }
+
+        //Store
+        public async Task<List<Store>> GetAllStoresAsync()
+        {
+            return await stores.Find(_ => true).ToListAsync();
         }
 
         public async Task InsertMockDataIfNeededAsync()
@@ -152,6 +171,60 @@ namespace PHPAPI.Model
         public async Task<DeleteResult> DeleteUserAsync(FilterDefinition<User> filter)
         {
             return await Users.DeleteOneAsync(filter);
+        }
+
+
+        //Store
+        public async Task InsertMockStoresAsync()
+        {
+            try
+            {
+                var mockStores = new List<Store>();
+
+                for (int i = 1; i <= 10; i++)
+                {
+                    // Create a GeoJsonPoint for the Location
+                    var location = GeoJson.Point(GeoJson.Geographic(10 + i, 55 + i % 2));
+
+                    TimeSpan? expriryDate;
+
+                    if (i % 2 == 0)
+                        expriryDate = new TimeSpan(i, 0, 0, 0);
+                    else
+                        expriryDate = null;
+
+                    // Create mock wares
+                    var mockWares = new List<Ware>
+            {
+                new Ware { Name = $"FirstProduct{i}", Producer = $"FirstProducer{i}", Price = 10 * i, ExpirationTime = expriryDate },
+                new Ware { Name = $"SecondProduct{i}", Producer = $"SecondProducer{i}", Price = 2 * i, ExpirationTime = null }
+            };
+
+                    // Create a mock brand
+                    var mockBrand = new Brand
+                    {
+                        Name = $"Brand{i}",
+                        OpenTime = "08:00",
+                        CloseTime = "21:00",
+                        Wares = mockWares
+                    };
+
+                    var mockStore = new Store
+                    {
+                        Location = location,
+                        Brand = mockBrand
+                    };
+
+                    mockStores.Add(mockStore);
+                }
+
+                // Insert all mock stores into the database
+                await stores.InsertManyAsync(mockStores);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inserting mock data: {ex.Message}");
+            }
         }
 
     }

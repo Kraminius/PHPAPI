@@ -15,10 +15,10 @@ namespace PHPAPI.Model
         public string Name { get; set; }
 
         [BsonElement("openTime")]
-        public DateTime? OpenTime { get; set; }
+        public string? OpenTime { get; set; }
 
         [BsonElement("closeTime")]
-        public DateTime? CloseTime { get; set; }
+        public string? CloseTime { get; set; }
 
         [BsonElement("wares")]
         public List<Ware> Wares { get; set; }

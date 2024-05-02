@@ -21,7 +21,7 @@ namespace PHPAPI.Model
         public decimal Price { get; set; }
 
         [BsonElement("expirationTime")]
-        public TimeSpan? expirationTime { get; set; }
+        public TimeSpan? ExpirationTime { get; set; }
 
     }
 }
