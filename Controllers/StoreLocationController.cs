@@ -63,8 +63,8 @@ namespace PHPAPI.Controllers
         [HttpPost("generateMockStore/Copenhagen")]
         public async Task<IActionResult> GenerateMockDataCopenhagen(int numberOfEntries)
         {
-            var mockData = MockDataGeneratorLocation.GenerateMockDataCopenhagen(numberOfEntries);
-            await DBService.InsertManyGeolocationAsync(mockData);
+            var mockData = MockDataGeneratorStore.GenerateMockStoreCopenhagen(numberOfEntries);
+            await DBService.InsertManyStoresAsync(mockData);
             return Ok($"{numberOfEntries} mock entries for Copenhagen generated and inserted successfully.");
         }
 
@@ -74,8 +74,8 @@ namespace PHPAPI.Controllers
         [HttpPost("generateMockStore/Aarhus")]
         public async Task<IActionResult> GenerateMockDataAarhus(int numberOfEntries)
         {
-            var mockData = MockDataGeneratorLocation.GenerateMockDataForAarhus(numberOfEntries);
-            await DBService.InsertManyGeolocationAsync(mockData);
+            var mockData = MockDataGeneratorStore.GenerateMockDataForAarhus(numberOfEntries);
+            await DBService.InsertManyStoresAsync(mockData);
             return Ok($"{numberOfEntries} mock entries for Aarhus generated and inserted successfully.");
         }
 
@@ -83,17 +83,17 @@ namespace PHPAPI.Controllers
         [HttpPost("generateMockStore/Mon")]
         public async Task<IActionResult> GenerateMockDataMon(int numberOfEntries)
         {
-            var mockData = MockDataGeneratorLocation.GenerateMockDataForMon(numberOfEntries);
-            await DBService.InsertManyGeolocationAsync(mockData);
+            var mockData = MockDataGeneratorStore.GenerateMockDataForMon(numberOfEntries);
+            await DBService.InsertManyStoresAsync(mockData);
             return Ok($"{numberOfEntries} mock entries for Møn generated and inserted successfully.");
         }
 
         [HttpGet("findStoreByH3Index")]
-        public async Task<ActionResult<List<Store>>> FindByH3Index(string h3Index)
+        public async Task<ActionResult<List<Store>>> FindByH3Index(string h3Index, string brandName)
         {
             try
             {
-                var matchingGeolocations = await DBService.FindGeolocationsByH3IndexAsync(h3Index);
+                var matchingGeolocations = await DBService.FindStoreByH3IndexAsync(h3Index, brandName);
                 if (matchingGeolocations != null && matchingGeolocations.Count > 0)
                 {
                     return Ok(matchingGeolocations);
