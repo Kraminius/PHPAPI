@@ -29,7 +29,7 @@ namespace PHPAPI.Controllers
         }
 
         [HttpGet("findNearest")]
-        [Authorize]
+        //[Authorize] TODO: ENABLE AUTHORIZE
         public async Task<ActionResult<UserGeolocation>> FindNearest(double latitude, double longitude, int meters)
         {
             try

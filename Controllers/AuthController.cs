@@ -1,5 +1,7 @@
-﻿using System.Security.Cryptography;
+﻿using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PHPAPI.Model;
 using PHPAPI.Services;
@@ -86,7 +88,27 @@ namespace PHPAPI.Controllers
             return Ok(new { Token = token, Username = user.Username });
         }
 
-        private bool VerifyPassword(string password, string storedHash, byte[] salt)
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> Profile()
+        {
+            var username = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+
+            if (string.IsNullOrEmpty(username))
+            {
+                return Unauthorized("Invalid token data");
+            }
+
+            var user = await _userService.GetUserByUsernameAsync(username);
+            if (user == null)
+            {
+                return NotFound("User not found");
+            }
+
+            return Ok(new { Username = user.Username, Email = user.Email, Name = user.Name, HomeAddress = user.HomeAddress, WorkAddress = user.WorkAddress});
+        }
+
+    private bool VerifyPassword(string password, string storedHash, byte[] salt)
         {
             var hashOfInput = Convert.ToBase64String(HashPassword(password, salt));
             return hashOfInput == storedHash;
