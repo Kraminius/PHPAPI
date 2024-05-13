@@ -13,25 +13,22 @@ namespace PHPAPI.Model
         public byte[]? Salt { get; set; }
         public string Email { get; set; }
         public string Name { get; set; }
-        public string HomeAddress { get; set; }
-        public string WorkAddress { get; set; }
+        public Location[] Location { get; set; }
         public string Role { get; set; } = "User";
 
         public User() { }
 
-        public User(string username, string email, string name, string password, string homeAddress, String workAdress)
+        public User(string username, string email, string name, string password, Location[] location)
         {
+            Id = ObjectId.GenerateNewId();
             Username = username;
             Email = email;
             Name = name;
             Role = "User";
             Salt = GenerateSalt();
             SetPassword(password, Salt);
-            HomeAddress = homeAddress;
-            WorkAddress = workAdress;
-            
+            Location = location;
         }
-
         private void SetPassword(string password, byte[] salt)
         {         
             PasswordHash = Convert.ToBase64String(HashPassword(password, Salt));

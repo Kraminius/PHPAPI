@@ -50,8 +50,10 @@ namespace PHPAPI.Controllers
 
 
         [HttpDelete("deleteAll")]
+        [Authorize]
         public async Task<IActionResult> DeleteAllGeolocations()
         {
+
             try
             {
                 await _mongoDBService.DeleteAllGeolocationsAsync();
