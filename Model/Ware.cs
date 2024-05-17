@@ -14,14 +14,18 @@ namespace PHPAPI.Model
         [BsonElement("name")]
         public string Name { get; set; }
 
-        [BsonElement("producer")]
-        public string Producer { get; set; }
+        [BsonElement("desc")]
+        public string Desc { get; set; }
 
         [BsonElement("price")]
-        public decimal Price { get; set; }
+        public double Price { get; set; }
 
-        [BsonElement("expirationTime")]
-        public TimeSpan? ExpirationTime { get; set; }
+        [BsonElement("imageUrl")]
+        public string ImageUrl { get; set; }
+
+        [BsonElement("amount")]
+        public int Amount { get; set; }
+        
 
     }
 }
