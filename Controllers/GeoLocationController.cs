@@ -5,6 +5,10 @@ using H3.Model;
 using H3;
 using Microsoft.AspNetCore.Mvc;
 using PHPAPI.Model;
+using Azure.Core;
+using NetTopologySuite.Index.HPRtree;
+using MongoDB.Driver;
+using System.Linq;
 
 namespace PHPAPI.Controllers
 {
@@ -121,22 +125,107 @@ namespace PHPAPI.Controllers
         }
 
         [HttpGet("findByH3Index")]
-        public async Task<ActionResult<List<UserGeolocation>>> FindByH3Index(string h3Index)
+        public async Task<ActionResult<List<UserGeolocation>>> FindByH3Index(string requestId, string item, double longitude, double latitude)
         {
             try
             {
+                var h3Index = H3Index.FromLatLng(new LatLng(latitude, longitude), 7).ToString();
                 var matchingGeolocations = await _mongoDBService.FindGeolocationsByH3IndexAsync(h3Index);
-                if (matchingGeolocations != null && matchingGeolocations.Count > 0)
+
+                if (!matchingGeolocations.Any())
+                    return NotFound("No geolocations found with the given H3 index.");
+
+                var deliveryRequests = matchingGeolocations.Select(geo => new DeliveryRequest
                 {
-                    return Ok(matchingGeolocations);
-                }
-                return NotFound("No geolocations found with the given H3 index.");
+                    RequestId = requestId,
+                    HelperId = geo.UserId,
+                    Item = item,
+                    Status = "Pending",
+                    DeliveryLocationLatitude = latitude,
+                    DeliveryLocationLongitude = longitude,
+                    H3Index = h3Index
+                }).ToList();
+
+                await _mongoDBService.InsertManyRequests(deliveryRequests);
+                return Ok(matchingGeolocations);
+            }
+            catch (MongoWriteException ex)
+            {
+                if (ex.WriteError.Code == 11000) // Checking directly for the duplicate key error code
+                    return Conflict("Duplicate entry detected. A delivery request with the same RequestId and HelperId combination already exists.");
+                throw;
             }
             catch (Exception ex)
             {
                 return StatusCode(500, "An error occurred while retrieving geolocations: " + ex.Message);
             }
         }
+
+
+
+
+
+
+        [HttpGet("GetAllRequests")]
+        public async Task<ActionResult<List<DeliveryRequest>>> GetAllRequests()
+        {
+            try
+            {
+                var requests = await _mongoDBService.DeliveryRequestsAsync();
+                if (requests != null && requests.Count > 0)
+                {
+                    return Ok(requests);
+                }
+                return Ok("No requests found.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while retrieving requests: " + ex.Message);
+            }
+        }
+
+
+
+        [HttpGet("getMyH3")]
+        public ActionResult<string> GetMyH3Index(double latitude, double longitude)
+        {
+            try
+            {
+                // Ensure latitude and longitude are within the valid range
+                if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
+                {
+                    return BadRequest("Invalid latitude or longitude values. Ensure latitude is between -90 and 90, and longitude is between -180 and 180.");
+                }
+
+                var h3Index = H3Index.FromLatLng(new LatLng(latitude, longitude), 7); // Assuming the use of resolution 7
+
+                if (h3Index == null)
+                {
+                    return NotFound("Unable to generate H3 index for the provided coordinates.");
+                }
+
+                return Ok(h3Index.ToString());
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while calculating H3 index: {ex.Message}");
+            }
+        }
+
+        [HttpDelete("deleteAllRequests")]
+        public async Task<IActionResult> DeleteAllRequests()
+        {
+            try
+            {
+                await _mongoDBService.DeleteAllDeliveryRequestsAsync();
+                return Ok("All delivery requests have been deleted.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while deleting delivery requests: " + ex.Message);
+            }
+        }
+
 
     }
 }

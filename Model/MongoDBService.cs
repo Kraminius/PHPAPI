@@ -14,6 +14,7 @@ namespace PHPAPI.Model
     public class MongoDBService
     {
         private readonly IMongoCollection<UserGeolocation> _geolocations;
+        private readonly IMongoCollection<DeliveryRequest> _deliveryRequest;
 
         public MongoDBService(IOptions<MongoDBSettings> settings)
         {
@@ -23,14 +24,22 @@ namespace PHPAPI.Model
             var client = new MongoClient(settings.Value.ConnectionString);
             var database = client.GetDatabase(settings.Value.DatabaseName);
             _geolocations = database.GetCollection<UserGeolocation>(settings.Value.GeolocationCollectionName);
+            _deliveryRequest = database.GetCollection<DeliveryRequest>("RequestCollection");
 
             CreateGeospatialIndex();
+            CreateCompoundIndex();
         }
 
         public async Task InsertManyGeolocationAsync(List<UserGeolocation> geolocations)
         {
             await _geolocations.InsertManyAsync(geolocations);
         }
+
+        public async Task InsertManyRequests(List<DeliveryRequest> requests)
+        {
+            await _deliveryRequest.InsertManyAsync(requests);
+        }
+
 
         private void CreateGeospatialIndex()
         {
@@ -52,6 +61,11 @@ namespace PHPAPI.Model
         public async Task<List<UserGeolocation>> GetAllGeolocationsAsync()
         {
             return await _geolocations.Find(_ => true).ToListAsync();
+        }
+
+        public async Task<List<DeliveryRequest>> DeliveryRequestsAsync()
+        {
+            return await _deliveryRequest.Find(_ => true).ToListAsync();
         }
 
         public async Task InsertMockDataIfNeededAsync()
@@ -97,6 +111,24 @@ namespace PHPAPI.Model
             var filter = Builders<UserGeolocation>.Filter.Eq(geo => geo.H3Index, h3Index);
             return await _geolocations.Find(filter).ToListAsync();
         }
+
+
+        public async Task DeleteAllDeliveryRequestsAsync()
+        {
+            // This will delete all documents from the _deliveryRequest collection
+            await _deliveryRequest.DeleteManyAsync(Builders<DeliveryRequest>.Filter.Empty);
+        }
+
+        public void CreateCompoundIndex()
+        {
+            var indexKeysDefinition = Builders<DeliveryRequest>.IndexKeys
+                .Ascending(x => x.RequestId)
+                .Ascending(x => x.HelperId);
+            var indexOptions = new CreateIndexOptions { Unique = true };
+
+            _deliveryRequest.Indexes.CreateOne(new CreateIndexModel<DeliveryRequest>(indexKeysDefinition, indexOptions));
+        }
+
 
     }
 }
