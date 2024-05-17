@@ -9,6 +9,7 @@ using Azure.Core;
 using NetTopologySuite.Index.HPRtree;
 using MongoDB.Driver;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PHPAPI.Controllers
 {
@@ -20,6 +21,7 @@ namespace PHPAPI.Controllers
 
         public GeolocationController(MongoDBService mongoDBService)
         {
+            Console.WriteLine("I am in geolocationcontroller.");
             _mongoDBService = mongoDBService;
         }
 
@@ -31,6 +33,7 @@ namespace PHPAPI.Controllers
         }
 
         [HttpGet("findNearest")]
+        //[Authorize] TODO: ENABLE AUTHORIZE
         public async Task<ActionResult<UserGeolocation>> FindNearest(double latitude, double longitude, int meters)
         {
             try
@@ -51,8 +54,10 @@ namespace PHPAPI.Controllers
 
 
         [HttpDelete("deleteAll")]
+        [Authorize]
         public async Task<IActionResult> DeleteAllGeolocations()
         {
+
             try
             {
                 await _mongoDBService.DeleteAllGeolocationsAsync();

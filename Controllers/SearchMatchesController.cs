@@ -5,16 +5,15 @@ using System.Text.RegularExpressions;
 
 namespace PHPAPI.Controllers
 {
-    [Route("api/[controller]")] // Defines the route template
-    [ApiController] // Signifies that this controller responds to web API requests
-    public class SearchMatchesController : ControllerBase // Change the name to follow convention and inherit from ControllerBase
+    [Route("api/[controller]")]
+    [ApiController]
+    public class SearchMatchesController : ControllerBase
     {
-        [HttpGet(Name = "GetMatch")] // Indicates that this action handles GET requests
+        [HttpGet(Name = "GetMatch")]
         public ActionResult<IEnumerable<Model.Match>> GetAllMatches()
         {
-            // Assuming DataLayer.GetAllMatches() fetches data from the data source
             var matches = DataLayer.GetAllMatches();
-            if (matches == null) return NotFound(); // Returns a 404 if no matches are found
+            if (matches == null) return Ok("No matches found..."); // Returns a 200 with message if no matches are found
             return Ok(matches); // Returns a 200 OK response with the matches
         }
     }

@@ -6,5 +6,6 @@ namespace PHPAPI.Services
     {
         Task CreateUserAsync(Model.User user);
         Task<Model.User> GetUserByUsernameAsync(string Username);
+
     }
 }
