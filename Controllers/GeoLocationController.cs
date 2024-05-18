@@ -228,20 +228,23 @@ namespace PHPAPI.Controllers
                     return NotFound("No geolocations found with the given H3 index.");
                 }
 
-                // Log each matching geolocation
-                foreach (var geo in matchingGeolocations)
+                // Filter out the user's own geolocation
+                var filteredGeolocations = matchingGeolocations.Where(geo => geo.Id != requestUser.Id).ToList();
+
+                // Log each filtered geolocation
+                foreach (var geo in filteredGeolocations)
                 {
                     Console.WriteLine("Matching geolocation: " + JsonConvert.SerializeObject(geo));
                 }
 
                 // Create delivery requests for matching geolocations
-                var deliveryRequests = matchingGeolocations.Select(geo =>
+                var deliveryRequests = filteredGeolocations.Select(geo =>
                 {
                     return new DeliveryRequest
                     {
                         Id = ObjectId.GenerateNewId(),
                         RequestUser = requestUser,
-                        HelpUser = geo,
+                        HelpUser = new User { Id = geo.Id, Username = geo.Username, Email = geo.Email, Name = geo.Name, Location = geo.Location },
                         Wares = requestInput.Wares,
                         State = DeliveryRequest.StateOfRequest.Status.REQUESTED,
                         Location = requestInput.Location,
@@ -259,14 +262,14 @@ namespace PHPAPI.Controllers
                 // Insert the new delivery requests into the database
                 await _mongoDBService.InsertManyRequests(deliveryRequests);
 
-                return Ok(matchingGeolocations);
+                return Ok(filteredGeolocations);
             }
             catch (MongoWriteException ex)
             {
                 if (ex.WriteError.Code == 11000) // Check for duplicate key error code
                 {
                     Console.WriteLine("Duplicate entry detected.");
-                    return Conflict("Duplicate entry detected. A delivery request with the same RequestId and HelperId combination already exists.");
+                    return Conflict("Duplicate entry detected.");
                 }
                 throw;
             }
@@ -276,6 +279,7 @@ namespace PHPAPI.Controllers
                 return StatusCode(500, "An error occurred while retrieving geolocations: " + ex.Message);
             }
         }
+
 
 
 

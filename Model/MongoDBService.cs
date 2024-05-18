@@ -8,32 +8,37 @@ using MongoDB.Driver.GeoJsonObjectModel;
 using MongoDB.Bson;
 using H3.Model;
 using H3;
+using Newtonsoft.Json;
 
 namespace PHPAPI.Model
 {
     public class MongoDBService
     {
-        private readonly IMongoCollection<UserGeolocation> _geolocations;
-        //Store
-        private readonly IMongoCollection<Store> stores;
-        public IMongoCollection<User> Users { get; private set; }
-        public IMongoCollection<DeliveryRequest> DeliveryRequests { get; private set; }
+        public readonly IMongoCollection<UserGeolocation> _geolocations;
+        public readonly IMongoCollection<Store> stores;
+        public readonly IMongoCollection<User> Users;
+        public readonly IMongoCollection<DeliveryRequest> DeliveryRequests;
+
 
         public MongoDBService(IOptions<MongoDBSettings> settings)
         {
+            Console.WriteLine("Initializing MongoDBService...");
 
+            // Log the settings values
+            Console.WriteLine($"ConnectionString: {settings.Value.ConnectionString}");
+            Console.WriteLine($"DatabaseName: {settings.Value.DatabaseName}");
+            Console.WriteLine($"GeolocationCollectionName: {settings.Value.GeolocationCollectionName}");
+            Console.WriteLine($"UserCollectionName: {settings.Value.UserCollectionName}");
+            Console.WriteLine($"RequestCollectionName: {settings.Value.RequestCollectionName}");
 
-            Console.WriteLine("WHATUP");
             var client = new MongoClient(settings.Value.ConnectionString);
             var database = client.GetDatabase(settings.Value.DatabaseName);
             _geolocations = database.GetCollection<UserGeolocation>(settings.Value.GeolocationCollectionName);
-            //Store
             stores = database.GetCollection<Store>("stores");
             Users = database.GetCollection<User>(settings.Value.UserCollectionName);
-            DeliveryRequests = database.GetCollection<DeliveryRequest>("RequestCollection");
+            DeliveryRequests = database.GetCollection<DeliveryRequest>(settings.Value.RequestCollectionName);
 
-            CreateGeospatialIndex();
-            CreateCompoundIndex();
+            Console.WriteLine("MongoDBService initialized successfully.");
         }
 
         public async Task InsertManyGeolocationAsync(List<UserGeolocation> geolocations)
@@ -43,6 +48,11 @@ namespace PHPAPI.Model
 
         public async Task InsertManyRequests(List<DeliveryRequest> requests)
         {
+            Console.WriteLine("Inserting many requests...");
+            foreach (var request in requests)
+            {
+                Console.WriteLine($"Inserting request: {JsonConvert.SerializeObject(request)}");
+            }
             await DeliveryRequests.InsertManyAsync(requests);
         }
 
@@ -156,16 +166,18 @@ namespace PHPAPI.Model
             var filter = Builders<DeliveryRequest>.Filter.Eq(r => r.H3Index, h3Index);
             return await DeliveryRequests.Find(filter).ToListAsync();
         }
-
+        /*
         public void CreateCompoundIndex()
         {
+
             var indexKeysDefinition = Builders<DeliveryRequest>.IndexKeys
                 .Ascending(x => x.Id)
-                .Ascending(x => x.HelpUser); //TODO: Check if this is correct. MAYBE it's RequestUser.Id
-            var indexOptions = new CreateIndexOptions { Unique = true };
+                .Ascending(x => x.HelpUser.Id); //TODO: Check if this is correct. MAYBE it's RequestUser.Id
+            var indexOptions = new CreateIndexOptions { Unique = false };
 
             DeliveryRequests.Indexes.CreateOne(new CreateIndexModel<DeliveryRequest>(indexKeysDefinition, indexOptions));
         }
+        */
 
         //Store
         public async Task<List<Store>> FindNearestStoreAsync(double latitude, double longitude, int meters, string brandName)

@@ -7,5 +7,7 @@ namespace PHPAPI.Model
         public string GeolocationCollectionName { get; set; } = null!;
 
         public string UserCollectionName { get; set; }
+
+        public string RequestCollectionName { get; set; }
     } 
 }
