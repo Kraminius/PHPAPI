@@ -66,7 +66,7 @@ public class UserService : IUserService
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var keyPath = "/container-secure-dir/private_key.pem";
-        RSA rsa = null;  // Declare rsa outside of using block
+        RSA rsa = null; 
 
         try
         {
@@ -82,8 +82,9 @@ public class UserService : IUserService
             };
             var claims = new[]
             {
-            new Claim(ClaimTypes.Name, username)
-        };
+            new Claim(ClaimTypes.Name, username),
+            new Claim(ClaimTypes.NameIdentifier, username)
+            };
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
@@ -93,6 +94,12 @@ public class UserService : IUserService
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
+
+            string jwtToken = tokenHandler.WriteToken(token);
+
+            Console.WriteLine("Generated Token: " + jwtToken);
+            Console.WriteLine("Private Key: " + privateKeyContent);
+
             return tokenHandler.WriteToken(token);
         }
         catch (Exception ex)

@@ -61,6 +61,12 @@ namespace PHPAPI.Controllers
             // Sanitize and validate locations
             foreach (var location in registrationInput.Location)
             {
+                // Sanitize location fields
+                location.Address = SanitizeInput(location.Address?.Trim());
+                location.LocationName = SanitizeInput(location.LocationName?.Trim());
+                location.Logo = SanitizeInput(location.Logo?.Trim());
+
+                // Check for invalid location data
                 if (string.IsNullOrWhiteSpace(location.Address) ||
                     string.IsNullOrWhiteSpace(location.LocationName) ||
                     !double.TryParse(location.X.ToString(), out _) ||
@@ -68,11 +74,6 @@ namespace PHPAPI.Controllers
                 {
                     return BadRequest("Invalid location data");
                 }
-
-                // Sanitize location fields
-                location.Address = SanitizeInput(location.Address.Trim());
-                location.LocationName = SanitizeInput(location.LocationName.Trim());
-                location.Logo = SanitizeInput(location.Logo.Trim());
             }
 
             // Generate salt and hash password
@@ -91,6 +92,7 @@ namespace PHPAPI.Controllers
                 Username = registrationInput.Username,
                 PasswordHash = hashedPassword,
                 Salt = salt,
+                H3Index = "87f2b2266ffffff",
                 Email = registrationInput.Email,
                 Name = registrationInput.Name,
                 Location = registrationInput.Location
@@ -176,13 +178,6 @@ namespace PHPAPI.Controllers
             int iterations = 600000;
             using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
             return pbkdf2.GetBytes(32); // Creates a 256-bit hash
-        }
-
-        private void SetPassword(User user, string password)
-        {
-            byte[] salt = GenerateSalt();
-            user.Salt = salt;
-            user.PasswordHash = Convert.ToBase64String(HashPassword(password, salt));
         }
 
         private string SanitizeInput(string input)

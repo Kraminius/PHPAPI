@@ -31,23 +31,36 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine("Authentication failed: " + context.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("Token validated successfully.");
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                Console.WriteLine("OnChallenge error: " + context.ErrorDescription);
+                return Task.CompletedTask;
+            }
+        };
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new RsaSecurityKey(GetPublicKey()),
+            IssuerSigningKey = new RsaSecurityKey(RsaKeyProvider.PublicKey),
             ValidateIssuer = false,
-            ValidateAudience = false
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
         };
     });
 
-static RSA GetPublicKey() //for RSA256 assymetric auth of AUTH request.
-{
-    var publicKeyPath = "/container-secure-dir/public_key.pem";
-    using var rsa = RSA.Create();
-    var publicKeyContent = File.ReadAllText(publicKeyPath);
-    rsa.ImportFromPem(publicKeyContent.ToCharArray());
-    return rsa;
-}
 
 var app = builder.Build();
 

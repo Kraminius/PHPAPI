@@ -17,7 +17,7 @@ namespace PHPAPI.Model
         //Store
         private readonly IMongoCollection<Store> stores;
         public IMongoCollection<User> Users { get; private set; }
-        private readonly IMongoCollection<DeliveryRequest> _deliveryRequest;
+        public IMongoCollection<DeliveryRequest> DeliveryRequests { get; private set; }
 
         public MongoDBService(IOptions<MongoDBSettings> settings)
         {
@@ -30,7 +30,7 @@ namespace PHPAPI.Model
             //Store
             stores = database.GetCollection<Store>("stores");
             Users = database.GetCollection<User>(settings.Value.UserCollectionName);
-            _deliveryRequest = database.GetCollection<DeliveryRequest>("RequestCollection");
+            DeliveryRequests = database.GetCollection<DeliveryRequest>("RequestCollection");
 
             CreateGeospatialIndex();
             CreateCompoundIndex();
@@ -43,7 +43,7 @@ namespace PHPAPI.Model
 
         public async Task InsertManyRequests(List<DeliveryRequest> requests)
         {
-            await _deliveryRequest.InsertManyAsync(requests);
+            await DeliveryRequests.InsertManyAsync(requests);
         }
 
 
@@ -91,7 +91,7 @@ namespace PHPAPI.Model
 
         public async Task<List<DeliveryRequest>> DeliveryRequestsAsync()
         {
-            return await _deliveryRequest.Find(_ => true).ToListAsync();
+            return await DeliveryRequests.Find(_ => true).ToListAsync();
         }
 
         //Store
@@ -129,36 +129,42 @@ namespace PHPAPI.Model
             }
         }
 
-        public async Task<UserGeolocation> FindNearestAsync(double latitude, double longitude, int meters)
+        public async Task<User> FindNearestAsync(double latitude, double longitude, int meters)
         {
             var point = GeoJson.Point(GeoJson.Geographic(longitude, latitude)); // Very important GeoJson use (longitude, latitude) and Google map use (latitude, longitude)
-            var filter = Builders<UserGeolocation>.Filter.NearSphere(x => x.Location, point, maxDistance: meters);
-            Console.WriteLine(_geolocations.Find(filter));
+            var filter = Builders<User>.Filter.NearSphere(x => x.Location, point, maxDistance: meters);
+            Console.WriteLine(Users.Find(filter));
 
-            return await _geolocations.Find(filter).FirstOrDefaultAsync();
+            return await Users.Find(filter).FirstOrDefaultAsync();
         }
 
-        public async Task<List<UserGeolocation>> FindGeolocationsByH3IndexAsync(string h3Index)
+        public async Task<List<User>> FindGeolocationsByH3IndexAsync(string h3Index)
         {
-            var filter = Builders<UserGeolocation>.Filter.Eq(geo => geo.H3Index, h3Index);
-            return await _geolocations.Find(filter).ToListAsync();
+            var filter = Builders<User>.Filter.Eq(geo => geo.H3Index, h3Index);
+            return await Users.Find(filter).ToListAsync();
         }
 
 
         public async Task DeleteAllDeliveryRequestsAsync()
         {
             // This will delete all documents from the _deliveryRequest collection
-            await _deliveryRequest.DeleteManyAsync(Builders<DeliveryRequest>.Filter.Empty);
+            await DeliveryRequests.DeleteManyAsync(Builders<DeliveryRequest>.Filter.Empty);
+        }
+
+        public async Task<List<DeliveryRequest>> FindDeliveryRequestsByH3IndexAsync(string h3Index)
+        {
+            var filter = Builders<DeliveryRequest>.Filter.Eq(r => r.H3Index, h3Index);
+            return await DeliveryRequests.Find(filter).ToListAsync();
         }
 
         public void CreateCompoundIndex()
         {
             var indexKeysDefinition = Builders<DeliveryRequest>.IndexKeys
-                .Ascending(x => x.RequestId)
-                .Ascending(x => x.HelperId);
+                .Ascending(x => x.Id)
+                .Ascending(x => x.HelpUser); //TODO: Check if this is correct. MAYBE it's RequestUser.Id
             var indexOptions = new CreateIndexOptions { Unique = true };
 
-            _deliveryRequest.Indexes.CreateOne(new CreateIndexModel<DeliveryRequest>(indexKeysDefinition, indexOptions));
+            DeliveryRequests.Indexes.CreateOne(new CreateIndexModel<DeliveryRequest>(indexKeysDefinition, indexOptions));
         }
 
         //Store
@@ -226,10 +232,10 @@ namespace PHPAPI.Model
 
                     // Create mock wares
                     var mockWares = new List<Ware>
-            {
-                new Ware { Name = $"FirstProduct{i}", Producer = $"FirstProducer{i}", Price = 10 * i, ExpirationTime = expriryDate },
-                new Ware { Name = $"SecondProduct{i}", Producer = $"SecondProducer{i}", Price = 2 * i, ExpirationTime = null }
-            };
+                    {
+                        new Ware { Name = $"FirstProduct{i}", Price = 10 * i, Desc = "Description1", ImageUrl = "ImageUrl1", Amount = 1 },
+                        new Ware { Name = $"SecondProduct{i}", Price = 2 * i, Desc = "Description2", ImageUrl = "ImageUrl2", Amount = 2 }
+                    };
 
                     // Create a mock brand
                     var mockBrand = new Brand

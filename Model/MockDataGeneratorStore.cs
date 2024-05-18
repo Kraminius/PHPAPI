@@ -33,10 +33,11 @@ namespace PHPAPI.Model
 
                 // Create mock wares
                 var mockWares = new List<Ware>
-            {
-                new Ware { Name = $"FirstProduct{i}", Producer = $"FirstProducer{i}", Price = 10 * i, ExpirationTime = expriryDate },
-                new Ware { Name = $"SecondProduct{i}", Producer = $"SecondProducer{i}", Price = 2 * i, ExpirationTime = null }
-            };
+                {
+                    new Ware { Name = $"FirstProduct{i}", Price = 10 * i, Desc = "Description1", ImageUrl = "ImageUrl1", Amount = 1 },
+                    new Ware { Name = $"SecondProduct{i}", Price = 2 * i, Desc = "Description2", ImageUrl = "ImageUrl2", Amount = 2 }
+                };
+
 
                 // Create a mock brand
                 var mockBrand = new Brand
@@ -84,8 +85,8 @@ namespace PHPAPI.Model
                 // Create mock wares
                 var mockWares = new List<Ware>
             {
-                new Ware { Name = $"FirstProduct{i}", Producer = $"FirstProducer{i}", Price = 10 * i, ExpirationTime = expriryDate },
-                new Ware { Name = $"SecondProduct{i}", Producer = $"SecondProducer{i}", Price = 2 * i, ExpirationTime = null }
+                new Ware { Name = $"FirstProduct{i}", Price = 10 * i, Desc = "Description1", ImageUrl = "ImageUrl1", Amount = 1 },
+                new Ware { Name = $"SecondProduct{i}", Price = 2 * i, Desc = "Description2", ImageUrl = "ImageUrl2", Amount = 2 }
             };
 
                 // Create a mock brand
@@ -134,8 +135,8 @@ namespace PHPAPI.Model
                 // Create mock wares
                 var mockWares = new List<Ware>
             {
-                new Ware { Name = $"FirstProduct{i}", Producer = $"FirstProducer{i}", Price = 10 * i, ExpirationTime = expriryDate },
-                new Ware { Name = $"SecondProduct{i}", Producer = $"SecondProducer{i}", Price = 2 * i, ExpirationTime = null }
+                new Ware { Name = $"FirstProduct{i}", Price = 10 * i, Desc = "Description1", ImageUrl = "ImageUrl1", Amount = 1 },
+                new Ware { Name = $"SecondProduct{i}", Price = 2 * i, Desc = "Description2", ImageUrl = "ImageUrl2", Amount = 2 }
             };
 
                 // Create a mock brand

@@ -1,6 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using System.ComponentModel.DataAnnotations;
 
 namespace PHPAPI.Model
 {
@@ -8,17 +9,28 @@ namespace PHPAPI.Model
     {
         [BsonId]
         [BsonRepresentation(BsonType.ObjectId)]
-        public string Id { get; set; }
-
-        public string RequestIdKey { get; set; }
-
+        [Required]
+        public ObjectId Id { get; set; }
+        [Required]
         public User RequestUser { get; set; }
-        public User HelpUser {  get; set; }
+        [Required]
+        public User HelpUser { get; set; }
+
+        [Required]
         public Ware[] Wares { get; set; }
-        public StateOfRequest.Status State {  get; set; }
+
+        [Required]
+        public StateOfRequest.Status State { get; set; }
+
+        [Required]
         public Location Location { get; set; }
+        [Required]
         public string H3Index { get; set; }
 
+        [Required]
+        public string TimeOfRequest { get; set; }
+
+        public DeliveryRequest() { }
 
         public class StateOfRequest
         {
@@ -29,8 +41,5 @@ namespace PHPAPI.Model
                 DONE
             }
         }
-
-        //public double DeliveryLocationLongitude { get; set; }
-        //public double DeliveryLocationLatitude { get; set; }
     }
 }

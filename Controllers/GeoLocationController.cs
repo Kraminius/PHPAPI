@@ -10,6 +10,11 @@ using NetTopologySuite.Index.HPRtree;
 using MongoDB.Driver;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using PHPAPI.Services;
+using System.Security.Claims;
+using MongoDB.Bson;
+using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace PHPAPI.Controllers
 {
@@ -18,11 +23,12 @@ namespace PHPAPI.Controllers
     public class GeolocationController : ControllerBase
     {
         private readonly MongoDBService _mongoDBService;
+        private readonly IUserService _userService;
 
-        public GeolocationController(MongoDBService mongoDBService)
+        public GeolocationController(MongoDBService mongoDBService, IUserService userService)
         {
-            Console.WriteLine("I am in geolocationcontroller.");
-            _mongoDBService = mongoDBService;
+            _mongoDBService = mongoDBService ?? throw new ArgumentNullException(nameof(mongoDBService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
         [HttpPost("insert")]
@@ -129,7 +135,7 @@ namespace PHPAPI.Controllers
             return Ok($"{numberOfEntries} mock entries for Møn generated and inserted successfully.");
         }
 
-        [HttpGet("findByH3Index")]
+        /* [HttpGet("findByH3Index")]
         public async Task<ActionResult<List<UserGeolocation>>> FindByH3Index(string requestId, string item, double longitude, double latitude)
         {
             try
@@ -164,8 +170,167 @@ namespace PHPAPI.Controllers
             {
                 return StatusCode(500, "An error occurred while retrieving geolocations: " + ex.Message);
             }
+        }  */
+
+        [HttpPost("request")]
+        [Authorize]
+        public async Task<ActionResult<List<UserGeolocation>>> FindByH3Index([FromBody] DeliveryRequestInput requestInput)
+        {
+            try
+            {
+                // Log received requestInput
+                Console.WriteLine("Received requestInput: " + JsonConvert.SerializeObject(requestInput));
+
+                // Extract and log claims from the token
+                var claims = User.Claims;
+                foreach (var claim in claims)
+                {
+                    Console.WriteLine($"{claim.Type}: {claim.Value}");
+                }
+
+                // Extract user ID from JWT token
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (userIdClaim == null)
+                {
+                    Console.WriteLine("No NameIdentifier claim found.");
+                    return Unauthorized("Invalid token.");
+                }
+
+                // Retrieve the user from the database
+                var requestUser = await _userService.GetUserByUsernameAsync(userIdClaim);
+                if (requestUser == null)
+                {
+                    Console.WriteLine("User not found in database.");
+                    return NotFound("User not found.");
+                }
+
+                // Validate input request fields
+                if (requestInput.Location == null)
+                {
+                    Console.WriteLine("RequestInput Location is null.");
+                    return BadRequest("Location is required.");
+                }
+                if (requestInput.Wares == null || requestInput.Wares.Length == 0)
+                {
+                    Console.WriteLine("RequestInput Wares is null or empty.");
+                    return BadRequest("Wares are required.");
+                }
+
+                // Compute the H3 index for the provided location
+                var h3Index = H3Index.FromLatLng(new LatLng(requestInput.Location.X, requestInput.Location.Y), 7).ToString();
+                Console.WriteLine("Computed H3 index: " + h3Index);
+
+                // Find matching geolocations by H3 index
+                var matchingGeolocations = await _mongoDBService.FindGeolocationsByH3IndexAsync(h3Index);
+                if (matchingGeolocations == null || !matchingGeolocations.Any())
+                {
+                    Console.WriteLine("No geolocations found with the given H3 index.");
+                    return NotFound("No geolocations found with the given H3 index.");
+                }
+
+                // Log each matching geolocation
+                foreach (var geo in matchingGeolocations)
+                {
+                    Console.WriteLine("Matching geolocation: " + JsonConvert.SerializeObject(geo));
+                }
+
+                // Create delivery requests for matching geolocations
+                var deliveryRequests = matchingGeolocations.Select(geo =>
+                {
+                    return new DeliveryRequest
+                    {
+                        Id = ObjectId.GenerateNewId(),
+                        RequestUser = requestUser,
+                        HelpUser = geo,
+                        Wares = requestInput.Wares,
+                        State = DeliveryRequest.StateOfRequest.Status.REQUESTED,
+                        Location = requestInput.Location,
+                        H3Index = h3Index,
+                        TimeOfRequest = requestInput.TimeOfRequest
+                    };
+                }).ToList();
+
+                // Log deliveryRequests
+                foreach (var request in deliveryRequests)
+                {
+                    Console.WriteLine("Generated deliveryRequest: " + JsonConvert.SerializeObject(request));
+                }
+
+                // Insert the new delivery requests into the database
+                await _mongoDBService.InsertManyRequests(deliveryRequests);
+
+                return Ok(matchingGeolocations);
+            }
+            catch (MongoWriteException ex)
+            {
+                if (ex.WriteError.Code == 11000) // Check for duplicate key error code
+                {
+                    Console.WriteLine("Duplicate entry detected.");
+                    return Conflict("Duplicate entry detected. A delivery request with the same RequestId and HelperId combination already exists.");
+                }
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An error occurred while retrieving geolocations: " + ex);
+                return StatusCode(500, "An error occurred while retrieving geolocations: " + ex.Message);
+            }
         }
 
+
+
+
+
+
+        /*
+        [HttpPost("assign")]
+        [Authorize]
+        public async Task<ActionResult> AssignRequest([FromBody] AssignRequestModel assignRequest)
+        {
+            try
+            {
+                // Extract user ID from JWT token
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (userIdClaim == null)
+                    return Unauthorized("Invalid token.");
+
+                // Retrieve the request from the database
+                var filter = Builders<DeliveryRequest>.Filter.Eq(r => r.RequestIdKey, assignRequest.RequestIdKey);
+                var update = Builders<DeliveryRequest>.Update
+                    .Set(r => r.HelpUser)
+                    .Set(r => r.State, DeliveryRequest.StateOfRequest.Status.ONGOING);
+
+                // Update the matched request to ONGOING
+                var result = await _mongoDBService.DeliveryRequests.UpdateOneAsync(
+                    Builders<DeliveryRequest>.Filter.And(
+                        filter,
+                        Builders<DeliveryRequest>.Filter.Eq(r => r.HelpUser.Id, ObjectId.Parse(userIdClaim))),
+                    update);
+
+                if (result.MatchedCount == 0)
+                    return NotFound("Request not found.");
+
+                // Delete all other requests with the same RequestIdKey
+                var deleteFilter = Builders<DeliveryRequest>.Filter.And(
+                    filter,
+                    Builders<DeliveryRequest>.Filter.Ne(r => r.HelpUser.Id, ObjectId.Parse(userIdClaim)));
+
+                await _mongoDBService.DeliveryRequests.DeleteManyAsync(deleteFilter);
+
+                return Ok("Request assigned successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while assigning the request: " + ex.Message);
+            }
+        }
+
+
+        public class AssignRequestModel
+        {
+            public string RequestIdKey { get; set; }
+        }
+        */
 
 
 
