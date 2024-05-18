@@ -280,7 +280,49 @@ namespace PHPAPI.Controllers
             }
         }
 
+        [HttpGet("request")]
+        [Authorize]
+        public async Task<ActionResult<List<DeliveryRequest>>> GetRequests()
+        {
+            try
+            {
+                // Extract user ID from JWT token
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+                if (userIdClaim == null)
+                {
+                    Console.WriteLine("No NameIdentifier claim found.");
+                    return Unauthorized("Invalid token.");
+                }
 
+                // Retrieve the user from the database
+                var user = await _userService.GetUserByUsernameAsync(userIdClaim);
+                if (user == null)
+                {
+                    Console.WriteLine("User not found in database.");
+                    return NotFound("User not found.");
+                }
+
+                // Query the database for requests where the user is either the requester or the helper
+                var filter = Builders<DeliveryRequest>.Filter.Or(
+                    Builders<DeliveryRequest>.Filter.Eq(r => r.RequestUser.Id, user.Id),
+                    Builders<DeliveryRequest>.Filter.Eq(r => r.HelpUser.Id, user.Id)
+                );
+
+                var requests = await _mongoDBService.DeliveryRequests.Find(filter).ToListAsync();
+
+                if (requests == null || requests.Count == 0)
+                {
+                    return NotFound("No requests found.");
+                }
+
+                return Ok(requests);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An error occurred while retrieving requests: " + ex);
+                return StatusCode(500, "An error occurred while retrieving requests: " + ex.Message);
+            }
+        }
 
 
 
