@@ -30,16 +30,17 @@ namespace PHPAPI.Controllers
             _mongoDBService = mongoDBService ?? throw new ArgumentNullException(nameof(mongoDBService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
-
+        /*
         [HttpPost("insert")]
         public async Task<IActionResult> Post([FromBody] UserGeolocation geolocation)
         {
             await _mongoDBService.InsertGeolocationAsync(geolocation);
             return Ok("Geolocation inserted successfully.");
         }
+        */
 
         [HttpGet("findNearest")]
-        //[Authorize] TODO: ENABLE AUTHORIZE
+        [Authorize]
         public async Task<ActionResult<UserGeolocation>> FindNearest(double latitude, double longitude, int meters)
         {
             try
@@ -217,6 +218,7 @@ namespace PHPAPI.Controllers
                 }
 
                 // Compute the H3 index for the provided location
+                
                 var h3Index = H3Index.FromLatLng(new LatLng(requestInput.Location.X, requestInput.Location.Y), 7).ToString();
                 Console.WriteLine("Computed H3 index: " + h3Index);
 

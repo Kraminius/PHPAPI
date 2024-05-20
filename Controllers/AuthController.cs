@@ -26,10 +26,10 @@ namespace PHPAPI.Controllers
         public async Task<IActionResult> Register([FromBody] User registrationInput)
         {
             // Sanitize and trim user input
-            registrationInput.Username = SanitizeInput(registrationInput.Username?.Trim());
-            registrationInput.PasswordHash = SanitizeInput(registrationInput.PasswordHash?.Trim());
-            registrationInput.Email = SanitizeInput(registrationInput.Email?.Trim());
-            registrationInput.Name = SanitizeInput(registrationInput.Name?.Trim());
+            registrationInput.Username = SanitizeInput(registrationInput.Username.Trim());
+            registrationInput.PasswordHash = SanitizeInput(registrationInput.PasswordHash.Trim());
+            registrationInput.Email = SanitizeInput(registrationInput.Email.Trim());
+            registrationInput.Name = SanitizeInput(registrationInput.Name.Trim());
 
             // Check for required fields being empty after sanitization and trimming
             if (string.IsNullOrEmpty(registrationInput.Username) ||
@@ -92,11 +92,12 @@ namespace PHPAPI.Controllers
                 Username = registrationInput.Username,
                 PasswordHash = hashedPassword,
                 Salt = salt,
-                H3Index = "87f2b2266ffffff",
                 Email = registrationInput.Email,
                 Name = registrationInput.Name,
                 Location = registrationInput.Location
             };
+
+            string test = null;
 
             // Create the new user in the database
             await _userService.CreateUserAsync(newUser);
@@ -177,7 +178,7 @@ namespace PHPAPI.Controllers
         {
             int iterations = 600000;
             using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256);
-            return pbkdf2.GetBytes(32); // Creates a 256-bit hash
+            return pbkdf2.GetBytes(32);
         }
 
         private string SanitizeInput(string input)
@@ -186,14 +187,29 @@ namespace PHPAPI.Controllers
             {
                 return input;
             }
+            //TODO: Add Logging for when this method is triggered.
 
-            // Replace or remove dangerous characters
             return input.Replace(",", "")
                         .Replace(";", "")
                         .Replace("<", "")
                         .Replace(">", "")
                         .Replace("\"", "")
-                        .Replace("'", "");
+                        .Replace("'", "")
+                        .Replace("--", "")
+                        .Replace("#", "")
+                        .Replace("/*...*/", "")
+                        .Replace("%", "")
+                        .Replace("+", "")
+                        .Replace("||", "")
+                        .Replace("=", "")
+                        .Replace(">", "")
+                        .Replace("<", "")
+                        .Replace("<=", "")
+                        .Replace(">=", "")
+                        .Replace("==", "")
+                        .Replace("<>", "")
+                        .Replace("!=", "");
+
         }
     }
 }

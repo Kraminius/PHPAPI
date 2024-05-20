@@ -66,7 +66,7 @@ public class UserService : IUserService
     {
         var tokenHandler = new JwtSecurityTokenHandler();
         var keyPath = "/container-secure-dir/private_key.pem";
-        RSA rsa = null; 
+        RSA rsa = null;
 
         try
         {
@@ -96,9 +96,6 @@ public class UserService : IUserService
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             string jwtToken = tokenHandler.WriteToken(token);
-
-            Console.WriteLine("Generated Token: " + jwtToken);
-            Console.WriteLine("Private Key: " + privateKeyContent);
 
             return tokenHandler.WriteToken(token);
         }
