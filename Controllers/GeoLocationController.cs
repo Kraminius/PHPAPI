@@ -282,6 +282,7 @@ namespace PHPAPI.Controllers
             }
         }
 
+
         [HttpGet("request")]
         [Authorize]
         public async Task<ActionResult<List<DeliveryRequest>>> GetRequests()
@@ -325,6 +326,8 @@ namespace PHPAPI.Controllers
                 return StatusCode(500, "An error occurred while retrieving requests: " + ex.Message);
             }
         }
+
+        HttpGet("request/{h3Index}")
 
 
 
